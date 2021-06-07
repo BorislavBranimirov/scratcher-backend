@@ -108,3 +108,18 @@ exports.deleteScratchById = async (req, res) => {
     return res.status(500).json({ err: 'An error occured while deleting scratch' });
   }
 };
+
+exports.getUsersLikedByScratchId = async (req, res) => {
+  const id = parseInt(req.params.id, 10);
+
+  try {
+    const users = await db('likes')
+      .select('id', 'username', 'description', 'profile_image_url')
+      .join('users', 'user_id', 'id')
+      .where({ scratch_id: id });
+
+    return res.json(users);
+  } catch (err) {
+    return res.status(500).json({ err: 'An error occurred while searching for users who liked the scratch' });
+  }
+};

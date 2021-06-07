@@ -28,4 +28,10 @@ router.route('/:userId/pin')
   .post(verifyAccessToken, userController.pinScratch)
   .delete(verifyAccessToken, userController.unpinScratch);
 
+router.route('/:id/bookmarks')
+  .get(verifyAccessToken, userController.getBookmarksByUserId);
+
+router.route('/:id/likes')
+  .get(verifyAccessToken, userController.getLikesByUserId);
+
 module.exports = router;

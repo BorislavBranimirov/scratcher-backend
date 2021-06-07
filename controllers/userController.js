@@ -273,3 +273,37 @@ exports.unpinScratch = async (req, res) => {
     return res.status(500).json({ err: 'An error occurred while unpinning scratch' });
   }
 };
+
+exports.getBookmarksByUserId = async (req, res) => {
+  const id = parseInt(req.params.id, 10);
+
+  if (id !== res.locals.user.id) {
+    return res.status(401).json({ err: 'Unauthorized to view user\'s bookmarks' });
+  }
+
+  try {
+    const bookmarks = await db('bookmarks')
+      .select('scratches.*')
+      .join('scratches', 'scratch_id', 'id')
+      .where({ user_id: id });
+
+    return res.json(bookmarks);
+  } catch (err) {
+    return res.status(500).json({ err: 'An error occurred while searching for bookmarks' });
+  }
+};
+
+exports.getLikesByUserId = async (req, res) => {
+  const id = parseInt(req.params.id, 10);
+
+  try {
+    const likes = await db('likes')
+      .select('scratches.*')
+      .join('scratches', 'scratch_id', 'id')
+      .where({ user_id: id });
+
+    return res.json(likes);
+  } catch (err) {
+    return res.status(500).json({ err: 'An error occurred while searching for likes' });
+  }
+};

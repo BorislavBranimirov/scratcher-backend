@@ -11,4 +11,7 @@ router.route('/:id')
   .get(scratchController.getScratchById)
   .delete(verifyAccessToken, scratchController.deleteScratchById);
 
+router.route('/:id/likes')
+  .get(scratchController.getUsersLikedByScratchId);
+
 module.exports = router;
