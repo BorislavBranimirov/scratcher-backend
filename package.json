@@ -1,0 +1,29 @@
+{
+  "name": "scratcher",
+  "version": "1.0.0",
+  "description": "A Twitter clone",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "server": "nodemon server.js",
+    "migrate": "knex migrate:latest",
+    "rollback": "knex migrate:rollback",
+    "seed": "knex seed:run",
+    "reseed": "knex migrate:rollback && knex migrate:latest && knex seed:run"
+  },
+  "author": "Borislav Branimirov",
+  "license": "MIT",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cloudinary": "^1.25.2",
+    "cookie-parser": "^1.4.5",
+    "dotenv": "^10.0.0",
+    "express": "^4.17.1",
+    "helmet": "^4.6.0",
+    "jsonwebtoken": "^8.5.1",
+    "knex": "^0.95.6",
+    "morgan": "^1.10.0",
+    "pg": "^8.6.0",
+    "uuid": "^8.3.2"
+  }
+}
