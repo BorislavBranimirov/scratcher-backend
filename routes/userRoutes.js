@@ -14,4 +14,14 @@ router.route('/:id')
   .get(userController.getOneById)
   .delete(verifyAccessToken, userController.deleteOneById);
 
+router.route('/:id/followers')
+  .get(userController.getFollowersById);
+
+router.route('/:id/followed')
+  .get(userController.getFollowedById);
+
+router.route('/:id/follow')
+  .post(verifyAccessToken, userController.followOneById)
+  .delete(verifyAccessToken, userController.unfollowOneById);
+
 module.exports = router;

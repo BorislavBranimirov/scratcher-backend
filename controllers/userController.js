@@ -77,7 +77,7 @@ exports.createOne = async (req, res) => {
 };
 
 exports.deleteOneById = async (req, res) => {
-  const id = parseInt(req.param.id, 10);
+  const id = parseInt(req.params.id, 10);
 
   if (id !== res.locals.user.id) {
     return res.status(401).json({ err: 'Unauthorized to delete user' });
@@ -99,5 +99,115 @@ exports.deleteOneById = async (req, res) => {
     });
   } catch (err) {
     return res.status(500).json({ err: 'An error occurred while deleting user' });
+  }
+};
+
+exports.getFollowersById = async (req, res) => {
+  const id = parseInt(req.params.id, 10);
+
+  try {
+    const followers = await db('follows')
+      .select('follower_id', 'username', 'description', 'profile_image_url')
+      .join('users', 'follower_id', '=', 'id')
+      .where({ followed_id: id });
+
+    return res.json(followers);
+  } catch (err) {
+    return res.status(500).json({ err: 'An error occurred while searching for followers' });
+  }
+};
+
+exports.getFollowedById = async (req, res) => {
+  const id = parseInt(req.params.id, 10);
+
+  try {
+    const followed = await db('follows')
+      .select('followed_id', 'username', 'description', 'profile_image_url')
+      .join('users', 'followed_id', '=', 'id')
+      .where({ follower_id: id });
+
+    return res.json(followed);
+  } catch (err) {
+    return res.status(500).json({ err: 'An error occurred while searching for followed users' });
+  }
+};
+
+exports.followOneById = async (req, res) => {
+  const id = parseInt(req.params.id, 10);
+
+  if (id === res.locals.user.id) {
+    return res.status(400).json({ err: 'A user cannot follow themselves' });
+  }
+
+  try {
+    const userExists = await db('users')
+      .select('id')
+      .where({ id })
+      .first();
+
+    if (!userExists) {
+      return res.status(400).json({ err: 'User does not exist' });
+    }
+
+    const alreadyFollowed = await db('follows')
+      .select('*')
+      .where({
+        follower_id: res.locals.user.id,
+        followed_id: id
+      })
+      .first();
+
+    if (alreadyFollowed) {
+      return res.status(400).json({ err: 'User is already followed' });
+    }
+
+    const [follow] = await db('follows')
+      .insert({
+        follower_id: res.locals.user.id,
+        followed_id: id
+      })
+      .returning(['follower_id', 'followed_id']);
+
+    return res.status(201).json({
+      success: true,
+      ...follow
+    });
+  } catch (err) {
+    console.log(err)
+    return res.status(500).json({ err: 'An error occurred while trying to follow user' });
+  }
+};
+
+exports.unfollowOneById = async (req, res) => {
+  const id = parseInt(req.params.id, 10);
+
+  try {
+    const userExists = await db('users')
+      .select('id')
+      .where({ id })
+      .first();
+
+    if (!userExists) {
+      return res.status(400).json({ err: 'User does not exist' });
+    }
+
+    const [unfollow] = await db('follows')
+      .where({
+        follower_id: res.locals.user.id,
+        followed_id: id
+      })
+      .del()
+      .returning(['follower_id', 'followed_id']);
+
+    if (!unfollow) {
+      return res.status(400).json({ err: 'User already unfollowed' });
+    }
+
+    return res.json({
+      success: true,
+      ...unfollow
+    });
+  } catch (err) {
+    return res.status(500).json({ err: 'An error occurred while trying to unfollow user' });
   }
 };
