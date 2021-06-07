@@ -15,9 +15,10 @@ app.use(morgan('tiny'));
 
 app.use(helmet());
 
-const { authRouter, userRouter } = require('./routes');
-app.use('/api/users', userRouter);
+const { authRouter, userRouter, scratchRouter } = require('./routes');
 app.use('/api/auth', authRouter);
+app.use('/api/users', userRouter);
+app.use('/api/scratches', scratchRouter);
 
 const port = process.env.PORT || 8000;
 
