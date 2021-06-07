@@ -5,10 +5,10 @@ const scratchController = require('../controllers/scratchController');
 const { verifyAccessToken } = require('../controllers/authController');
 
 router.route('/')
-  .post(verifyAccessToken, scratchController.createOne);
+  .post(verifyAccessToken, scratchController.createScratch);
 
 router.route('/:id')
-  .get(scratchController.getOneById)
-  .delete(verifyAccessToken, scratchController.deleteOneById);
+  .get(scratchController.getScratchById)
+  .delete(verifyAccessToken, scratchController.deleteScratchById);
 
 module.exports = router;

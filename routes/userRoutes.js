@@ -5,14 +5,14 @@ const userController = require('../controllers/userController');
 const { verifyAccessToken } = require('../controllers/authController');
 
 router.route('/')
-  .post(userController.createOne);
+  .post(userController.createUser);
 
 router.route('/username/:username')
-  .get(userController.getOneByUsername);
+  .get(userController.getUserByUsername);
 
 router.route('/:id')
-  .get(userController.getOneById)
-  .delete(verifyAccessToken, userController.deleteOneById);
+  .get(userController.getUserById)
+  .delete(verifyAccessToken, userController.deleteUserById);
 
 router.route('/:id/followers')
   .get(userController.getFollowersById);
@@ -21,11 +21,11 @@ router.route('/:id/followed')
   .get(userController.getFollowedById);
 
 router.route('/:id/follow')
-  .post(verifyAccessToken, userController.followOneById)
-  .delete(verifyAccessToken, userController.unfollowOneById);
+  .post(verifyAccessToken, userController.followUserById)
+  .delete(verifyAccessToken, userController.unfollowUserById);
 
 router.route('/:userId/pin')
-  .post(verifyAccessToken, userController.pinOne)
-  .delete(verifyAccessToken, userController.unpinOne);
+  .post(verifyAccessToken, userController.pinScratch)
+  .delete(verifyAccessToken, userController.unpinScratch);
 
 module.exports = router;

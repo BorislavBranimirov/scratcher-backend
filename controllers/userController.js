@@ -2,7 +2,7 @@ const db = require('../db/db');
 const bcrypt = require('bcryptjs');
 const userUtils = require('../utils/userUtils');
 
-exports.getOneByUsername = async (req, res) => {
+exports.getUserByUsername = async (req, res) => {
   try {
     const user = await db('users')
       .select('id', 'username', 'created_at', 'description', 'pinned_id', 'profile_image_url', 'profile_banner_url')
@@ -18,7 +18,7 @@ exports.getOneByUsername = async (req, res) => {
   }
 };
 
-exports.getOneById = async (req, res) => {
+exports.getUserById = async (req, res) => {
   try {
     const user = await db('users')
       .select('id', 'username', 'created_at', 'description', 'pinned_id', 'profile_image_url', 'profile_banner_url')
@@ -34,7 +34,7 @@ exports.getOneById = async (req, res) => {
   }
 };
 
-exports.createOne = async (req, res) => {
+exports.createUser = async (req, res) => {
   if (!req.body.username || !req.body.password) {
     return res.status(400).json({ err: 'No username or password provided' });
   }
@@ -73,7 +73,7 @@ exports.createOne = async (req, res) => {
   }
 };
 
-exports.deleteOneById = async (req, res) => {
+exports.deleteUserById = async (req, res) => {
   const id = parseInt(req.params.id, 10);
 
   if (id !== res.locals.user.id) {
@@ -128,7 +128,7 @@ exports.getFollowedById = async (req, res) => {
   }
 };
 
-exports.followOneById = async (req, res) => {
+exports.followUserById = async (req, res) => {
   const id = parseInt(req.params.id, 10);
 
   if (id === res.locals.user.id) {
@@ -171,7 +171,7 @@ exports.followOneById = async (req, res) => {
   }
 };
 
-exports.unfollowOneById = async (req, res) => {
+exports.unfollowUserById = async (req, res) => {
   const id = parseInt(req.params.id, 10);
 
   try {
@@ -203,7 +203,7 @@ exports.unfollowOneById = async (req, res) => {
   }
 };
 
-exports.pinOne = async (req, res) => {
+exports.pinScratch = async (req, res) => {
   if (!req.body.scratchId) {
     return res.status(400).json({ err: 'No scratch id provided' });
   }
@@ -240,7 +240,7 @@ exports.pinOne = async (req, res) => {
   }
 };
 
-exports.unpinOne = async (req, res) => {
+exports.unpinScratch = async (req, res) => {
   if (!req.body.scratchId) {
     return res.status(400).json({ err: 'No scratch id provided' });
   }

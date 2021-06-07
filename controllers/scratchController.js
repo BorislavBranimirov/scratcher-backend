@@ -1,6 +1,6 @@
 const db = require('../db/db');
 
-exports.getOneById = async (req, res) => {
+exports.getScratchById = async (req, res) => {
   try {
     const scratch = await db('scratches')
       .select('*')
@@ -16,7 +16,7 @@ exports.getOneById = async (req, res) => {
   }
 };
 
-exports.createOne = async (req, res) => {
+exports.createScratch = async (req, res) => {
   let { body, parent_id, rescratched_id, media_url } = req.body;
 
   try {
@@ -80,7 +80,7 @@ exports.createOne = async (req, res) => {
   }
 };
 
-exports.deleteOneById = async (req, res) => {
+exports.deleteScratchById = async (req, res) => {
   const id = parseInt(req.params.id, 10);
 
   try {
