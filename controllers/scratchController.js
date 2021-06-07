@@ -6,7 +6,6 @@ exports.getOneById = async (req, res) => {
       .select('*')
       .where({ id: parseInt(req.params.id, 10) })
       .first();
-
     if (!scratch) {
       return res.status(404).json({ err: 'Scratch not found' });
     }

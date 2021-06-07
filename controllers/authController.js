@@ -45,7 +45,6 @@ exports.login = async (req, res) => {
       .select('*')
       .where({ username: req.body.username })
       .first();
-
     if (!user) {
       return res.status(400).json({ err: 'Wrong username or password' });
     }

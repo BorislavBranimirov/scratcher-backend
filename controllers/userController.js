@@ -8,7 +8,6 @@ exports.getOneByUsername = async (req, res) => {
       .select('id', 'username', 'created_at', 'description', 'pinned_id', 'profile_image_url', 'profile_banner_url')
       .where({ username: req.params.username })
       .first();
-
     if (!user) {
       return res.status(404).json({ err: 'User not found' });
     }
@@ -25,7 +24,6 @@ exports.getOneById = async (req, res) => {
       .select('id', 'username', 'created_at', 'description', 'pinned_id', 'profile_image_url', 'profile_banner_url')
       .where({ id: parseInt(req.params.id, 10) })
       .first();
-
     if (!user) {
       return res.status(404).json({ err: 'User not found' });
     }
@@ -54,7 +52,6 @@ exports.createOne = async (req, res) => {
       .select('id')
       .where({ username: req.body.username })
       .first();
-
     if (userExists) {
       return res.status(400).json({ err: 'User already exists' });
     }
@@ -88,7 +85,6 @@ exports.deleteOneById = async (req, res) => {
       .where({ id })
       .del()
       .returning(['id', 'username']);
-
     if (!user) {
       return res.status(404).json({ err: 'User not found' });
     }
@@ -144,7 +140,6 @@ exports.followOneById = async (req, res) => {
       .select('id')
       .where({ id })
       .first();
-
     if (!userExists) {
       return res.status(400).json({ err: 'User does not exist' });
     }
@@ -156,7 +151,6 @@ exports.followOneById = async (req, res) => {
         followed_id: id
       })
       .first();
-
     if (alreadyFollowed) {
       return res.status(400).json({ err: 'User is already followed' });
     }
@@ -186,7 +180,6 @@ exports.unfollowOneById = async (req, res) => {
       .select('id')
       .where({ id })
       .first();
-
     if (!userExists) {
       return res.status(400).json({ err: 'User does not exist' });
     }
@@ -198,7 +191,6 @@ exports.unfollowOneById = async (req, res) => {
       })
       .del()
       .returning(['follower_id', 'followed_id']);
-
     if (!unfollow) {
       return res.status(400).json({ err: 'User already unfollowed' });
     }
