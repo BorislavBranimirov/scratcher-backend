@@ -103,8 +103,8 @@ exports.getFollowersById = async (req, res) => {
 
   try {
     const followers = await db('follows')
-      .select('follower_id', 'username', 'description', 'profile_image_url')
-      .join('users', 'follower_id', '=', 'id')
+      .select('id', 'username', 'description', 'profile_image_url')
+      .join('users', 'follower_id', 'id')
       .where({ followed_id: id });
 
     return res.json(followers);
@@ -118,8 +118,8 @@ exports.getFollowedById = async (req, res) => {
 
   try {
     const followed = await db('follows')
-      .select('followed_id', 'username', 'description', 'profile_image_url')
-      .join('users', 'followed_id', '=', 'id')
+      .select('id', 'username', 'description', 'profile_image_url')
+      .join('users', 'followed_id', 'id')
       .where({ follower_id: id });
 
     return res.json(followed);
