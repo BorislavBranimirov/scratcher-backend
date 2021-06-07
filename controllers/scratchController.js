@@ -109,6 +109,21 @@ exports.deleteScratchById = async (req, res) => {
   }
 };
 
+exports.getUsersRescratchedByScratchId = async (req, res) => {
+  const id = parseInt(req.params.id, 10);
+
+  try {
+    const users = await db('scratches')
+      .select('users.id', 'username', 'description', 'profile_image_url')
+      .join('users', 'author_id', 'users.id')
+      .where({ rescratched_id: id });
+
+    return res.json(users);
+  } catch (err) {
+    return res.status(500).json({ err: 'An error occurred while searching for users who shared the scratch' });
+  }
+};
+
 exports.getUsersLikedByScratchId = async (req, res) => {
   const id = parseInt(req.params.id, 10);
 

@@ -11,6 +11,9 @@ router.route('/:id')
   .get(scratchController.getScratchById)
   .delete(verifyAccessToken, scratchController.deleteScratchById);
 
+router.route('/:id/rescratches')
+  .get(scratchController.getUsersRescratchedByScratchId);
+
 router.route('/:id/likes')
   .get(scratchController.getUsersLikedByScratchId);
 
