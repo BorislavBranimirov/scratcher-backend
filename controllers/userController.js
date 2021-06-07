@@ -175,12 +175,15 @@ exports.unfollowUserById = async (req, res) => {
   const id = parseInt(req.params.id, 10);
 
   try {
-    const userExists = await db('users')
-      .select('id')
-      .where({ id })
+    const alreadyFollowed = await db('follows')
+      .select('*')
+      .where({
+        follower_id: res.locals.user.id,
+        followed_id: id
+      })
       .first();
-    if (!userExists) {
-      return res.status(400).json({ err: 'User does not exist' });
+    if (!alreadyFollowed) {
+      return res.status(400).json({ err: 'User is not followed' });
     }
 
     const [unfollow] = await db('follows')
