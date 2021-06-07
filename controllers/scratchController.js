@@ -17,7 +17,7 @@ exports.getScratchById = async (req, res) => {
 };
 
 exports.createScratch = async (req, res) => {
-  let { body, parent_id, rescratched_id, media_url } = req.body;
+  let { body, parentId, rescratchedId, mediaUrl } = req.body;
 
   try {
     if (body) {
@@ -29,45 +29,45 @@ exports.createScratch = async (req, res) => {
     }
 
     // a scratch has to contain text, id of a shared scratch or url to a media resource
-    if (!body && !rescratched_id && !media_url) {
+    if (!body && !rescratchedId && !mediaUrl) {
       return res.status(400).json({ err: 'No data provided' });
     }
 
-    if (parent_id) {
-      parent_id = parseInt(parent_id, 10);
+    if (parentId) {
+      parentId = parseInt(parentId, 10);
       const parentScratch = await db('scratches')
         .select('id')
-        .where({ id: parent_id })
+        .where({ id: parentId })
         .first();
       if (!parentScratch) {
         return res.status(404).json({ err: 'Parent scratch not found' });
       }
     }
 
-    if (rescratched_id) {
-      rescratched_id = parseInt(rescratched_id, 10);
+    if (rescratchedId) {
+      rescratchedId = parseInt(rescratchedId, 10);
       const scratchToShare = await db('scratches')
         .select('id')
-        .where({ id: rescratched_id })
+        .where({ id: rescratchedId })
         .first();
       if (!scratchToShare) {
         return res.status(404).json({ err: 'Scratch being shared not found' });
       }
     }
 
-    // TODO: implement media_url in controller
+    // TODO: implement mediaUrl in controller
     /*
-    if (media_url) {
+    if (mediaUrl) {
     }
     */
 
     const [scratch] = await db('scratches')
       .insert({
         author_id: res.locals.user.id,
-        rescratched_id,
-        parent_id,
+        rescratched_id: rescratchedId,
+        parent_id: parentId,
         body,
-        media_url
+        media_url: mediaUrl
       })
       .returning(['id', 'author_id']);
 
