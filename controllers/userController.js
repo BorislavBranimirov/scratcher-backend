@@ -167,7 +167,6 @@ exports.followOneById = async (req, res) => {
       ...follow
     });
   } catch (err) {
-    console.log(err)
     return res.status(500).json({ err: 'An error occurred while trying to follow user' });
   }
 };
