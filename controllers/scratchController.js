@@ -124,6 +124,77 @@ exports.getUsersRescratchedByScratchId = async (req, res) => {
   }
 };
 
+exports.bookmarkScratchById = async (req, res) => {
+  const id = parseInt(req.params.id, 10);
+
+  try {
+    const scratch = await db('scratches')
+      .select('id')
+      .where({ id })
+      .first();
+    if (!scratch) {
+      return res.status(404).json({ err: 'Scratch not found' });
+    }
+
+    const isBookmarked = await db('bookmarks')
+      .select('*')
+      .where({
+        user_id: res.locals.user.id,
+        scratch_id: id
+      })
+      .first();
+    if (isBookmarked) {
+      return res.status(400).json({ err: 'Scratch is already bookmarked' });
+    }
+
+    const [bookmark] = await db('bookmarks')
+      .insert({
+        user_id: res.locals.user.id,
+        scratch_id: id
+      })
+      .returning(['user_id', 'scratch_id']);
+
+    return res.status(201).json({
+      success: true,
+      ...bookmark
+    });
+  } catch (err) {
+    return res.status(500).json({ err: 'An error occurred while bookmarking scratch' });
+  }
+};
+
+exports.unbookmarkScratchById = async (req, res) => {
+  const id = parseInt(req.params.id, 10);
+
+  try {
+    const isBookmarked = await db('bookmarks')
+      .select('*')
+      .where({
+        user_id: res.locals.user.id,
+        scratch_id: id
+      })
+      .first();
+    if (!isBookmarked) {
+      return res.status(400).json({ err: 'Scratch is not bookmarked' });
+    }
+
+    const [bookmark] = await db('bookmarks')
+      .where({
+        user_id: res.locals.user.id,
+        scratch_id: id
+      })
+      .del()
+      .returning(['user_id', 'scratch_id']);
+
+    return res.json({
+      success: true,
+      ...bookmark
+    });
+  } catch (err) {
+    return res.status(500).json({ err: 'An error occurred while unbookmarking scratch' });
+  }
+};
+
 exports.getUsersLikedByScratchId = async (req, res) => {
   const id = parseInt(req.params.id, 10);
 
@@ -136,5 +207,76 @@ exports.getUsersLikedByScratchId = async (req, res) => {
     return res.json(users);
   } catch (err) {
     return res.status(500).json({ err: 'An error occurred while searching for users who liked the scratch' });
+  }
+};
+
+exports.likeScratchById = async (req, res) => {
+  const id = parseInt(req.params.id, 10);
+
+  try {
+    const scratch = await db('scratches')
+      .select('id')
+      .where({ id })
+      .first();
+    if (!scratch) {
+      return res.status(404).json({ err: 'Scratch not found' });
+    }
+
+    const isLiked = await db('likes')
+      .select('*')
+      .where({
+        user_id: res.locals.user.id,
+        scratch_id: id
+      })
+      .first();
+    if (isLiked) {
+      return res.status(400).json({ err: 'Scratch is already liked' });
+    }
+
+    const [like] = await db('likes')
+      .insert({
+        user_id: res.locals.user.id,
+        scratch_id: id
+      })
+      .returning(['user_id', 'scratch_id']);
+
+    return res.status(201).json({
+      success: true,
+      ...like
+    });
+  } catch (err) {
+    return res.status(500).json({ err: 'An error occurred while liking scratch' });
+  }
+};
+
+exports.unlikeScratchById = async (req, res) => {
+  const id = parseInt(req.params.id, 10);
+
+  try {
+    const isLiked = await db('likes')
+      .select('*')
+      .where({
+        user_id: res.locals.user.id,
+        scratch_id: id
+      })
+      .first();
+    if (!isLiked) {
+      return res.status(400).json({ err: 'Scratch is not liked' });
+    }
+
+    const [like] = await db('likes')
+      .where({
+        user_id: res.locals.user.id,
+        scratch_id: id
+      })
+      .del()
+      .returning(['user_id', 'scratch_id']);
+
+    return res.json({
+      success: true,
+      ...like
+    });
+  } catch (err) {
+    return res.status(500).json({ err: 'An error occurred while unliking scratch' });
   }
 };

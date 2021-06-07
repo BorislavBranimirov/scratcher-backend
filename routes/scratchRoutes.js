@@ -14,7 +14,13 @@ router.route('/:id')
 router.route('/:id/rescratches')
   .get(scratchController.getUsersRescratchedByScratchId);
 
+router.route('/:id/bookmark')
+  .post(verifyAccessToken, scratchController.bookmarkScratchById)
+  .delete(verifyAccessToken, scratchController.unbookmarkScratchById);
+
 router.route('/:id/likes')
-  .get(scratchController.getUsersLikedByScratchId);
+  .get(scratchController.getUsersLikedByScratchId)
+  .post(verifyAccessToken, scratchController.likeScratchById)
+  .delete(verifyAccessToken, scratchController.unlikeScratchById);
 
 module.exports = router;
