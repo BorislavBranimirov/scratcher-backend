@@ -202,3 +202,74 @@ exports.unfollowOneById = async (req, res) => {
     return res.status(500).json({ err: 'An error occurred while trying to unfollow user' });
   }
 };
+
+exports.pinOne = async (req, res) => {
+  if (!req.body.scratchId) {
+    return res.status(400).json({ err: 'No scratch id provided' });
+  }
+
+  const userId = parseInt(req.params.userId, 10);
+  const scratchId = parseInt(req.body.scratchId, 10);
+
+  if (userId !== res.locals.user.id) {
+    return res.status(401).json({ err: 'Unauthorized to pin scratch' });
+  }
+
+  try {
+    const scratch = await db('scratches')
+      .select(['id', 'author_id'])
+      .where({ id: scratchId })
+      .first();
+    if (!scratch) {
+      return res.status(404).json({ err: 'Scratch not found' });
+    }
+    if (scratch.author_id !== userId) {
+      return res.status(401).json({ err: 'Unauthorized to pin scratch' });
+    }
+
+    const [user] = await db('users')
+      .where({ id: userId })
+      .update({ pinned_id: scratchId })
+      .returning(['id', 'pinned_id']);
+
+    return res.json({
+      success: true
+    });
+  } catch (err) {
+    return res.status(500).json({ err: 'An error occurred while pinning scratch' });
+  }
+};
+
+exports.unpinOne = async (req, res) => {
+  if (!req.body.scratchId) {
+    return res.status(400).json({ err: 'No scratch id provided' });
+  }
+
+  const userId = parseInt(req.params.userId, 10);
+  const scratchId = parseInt(req.body.scratchId, 10);
+
+  if (userId !== res.locals.user.id) {
+    return res.status(401).json({ err: 'Unauthorized to unpin scratch' });
+  }
+
+  try {
+    const userOld = await db('users')
+      .select(['id', 'pinned_id'])
+      .where({ id: userId })
+      .first();
+    if (userOld.pinned_id !== scratchId) {
+      return res.status(400).json({ err: 'Scratch is not pinned' });
+    }
+
+    const [user] = await db('users')
+      .where({ id: userId })
+      .update({ pinned_id: null })
+      .returning(['id', 'pinned_id']);
+
+    return res.json({
+      success: true
+    });
+  } catch (err) {
+    return res.status(500).json({ err: 'An error occurred while unpinning scratch' });
+  }
+};

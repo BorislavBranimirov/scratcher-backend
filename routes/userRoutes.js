@@ -24,4 +24,8 @@ router.route('/:id/follow')
   .post(verifyAccessToken, userController.followOneById)
   .delete(verifyAccessToken, userController.unfollowOneById);
 
+router.route('/:userId/pin')
+  .post(verifyAccessToken, userController.pinOne)
+  .delete(verifyAccessToken, userController.unpinOne);
+
 module.exports = router;
