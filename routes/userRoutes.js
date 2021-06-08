@@ -24,10 +24,6 @@ router.route('/:id/follow')
   .post(verifyAccessToken, userController.followUserById)
   .delete(verifyAccessToken, userController.unfollowUserById);
 
-router.route('/:userId/pin')
-  .post(verifyAccessToken, userController.pinScratch)
-  .delete(verifyAccessToken, userController.unpinScratch);
-
 router.route('/:id/bookmarks')
   .get(verifyAccessToken, userController.getBookmarksByUserId);
 

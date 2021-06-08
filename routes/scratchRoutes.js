@@ -14,6 +14,10 @@ router.route('/:id')
 router.route('/:id/rescratches')
   .get(scratchController.getUsersRescratchedByScratchId);
 
+router.route('/:id/pin')
+  .post(verifyAccessToken, scratchController.pinScratch)
+  .delete(verifyAccessToken, scratchController.unpinScratch);
+
 router.route('/:id/bookmark')
   .post(verifyAccessToken, scratchController.bookmarkScratchById)
   .delete(verifyAccessToken, scratchController.unbookmarkScratchById);

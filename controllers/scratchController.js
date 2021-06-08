@@ -124,6 +124,70 @@ exports.getUsersRescratchedByScratchId = async (req, res) => {
   }
 };
 
+exports.pinScratch = async (req, res) => {
+  const id = parseInt(req.params.id, 10);
+
+  try {
+    const scratch = await db('scratches')
+      .select(['id', 'author_id'])
+      .where({ id })
+      .first();
+    if (!scratch) {
+      return res.status(404).json({ err: 'Scratch not found' });
+    }
+    if (scratch.author_id !== res.locals.user.id) {
+      return res.status(401).json({ err: 'Scratches can only be pinned by their author' });
+    }
+
+    const userOld = await db('users')
+      .select(['id', 'pinned_id'])
+      .where({ id: res.locals.user.id })
+      .first();
+    if (userOld.pinned_id === id) {
+      return res.status(400).json({ err: 'Scratch is already pinned' });
+    }
+
+    const [user] = await db('users')
+      .where({ id: res.locals.user.id })
+      .update({ pinned_id: id })
+      .returning(['id', 'pinned_id']);
+
+    return res.json({
+      success: true,
+      ...user
+    });
+  } catch (err) {
+    return res.status(500).json({ err: 'An error occurred while pinning scratch' });
+  }
+};
+
+exports.unpinScratch = async (req, res) => {
+  const id = parseInt(req.params.id, 10);
+
+  try {
+    const userOld = await db('users')
+      .select(['id', 'pinned_id'])
+      .where({ id: res.locals.user.id })
+      .first();
+    if (userOld.pinned_id !== id) {
+      return res.status(400).json({ err: 'Scratch is not pinned' });
+    }
+
+    const [user] = await db('users')
+      .where({ id: res.locals.user.id })
+      .update({ pinned_id: null })
+      .returning(['id']);
+
+    return res.json({
+      success: true,
+      ...user,
+      pinned_id: id
+    });
+  } catch (err) {
+    return res.status(500).json({ err: 'An error occurred while unpinning scratch' });
+  }
+};
+
 exports.bookmarkScratchById = async (req, res) => {
   const id = parseInt(req.params.id, 10);
 
