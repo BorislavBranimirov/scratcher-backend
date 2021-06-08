@@ -4,7 +4,7 @@ exports.up = async (knex) => {
     table.increments('id');
     table.text('username').unique().notNullable();
     table.text('password').notNullable();
-    table.timestamp('created_at', { useTz: false }).notNullable().defaultTo(knex.fn.now());
+    table.timestamp('created_at').notNullable().defaultTo(knex.fn.now());
     table.text('description');
     table.integer('pinned_id');
     table.text('profile_image_url');
@@ -18,7 +18,7 @@ exports.up = async (knex) => {
     table.integer('rescratched_id').unsigned().references('id').inTable('scratches').onDelete('CASCADE');
     table.text('body');
     table.text('media_url');
-    table.timestamp('created_at', { useTz: false }).notNullable().defaultTo(knex.fn.now());
+    table.timestamp('created_at').notNullable().defaultTo(knex.fn.now());
   });
 
   await knex.schema.alterTable('users', (table) => {
