@@ -16,6 +16,33 @@ exports.getScratchById = async (req, res) => {
   }
 };
 
+exports.searchScratches = async (req, res) => {
+  const searchPattern = (req.query.query) ? `%${req.query.query}%` : '%';
+  const limit = parseInt(req.query.limit, 10) || 50;
+  const after = (req.query.after) ? parseInt(req.query.after, 10) : 0;
+
+  try {
+    // get an extra record to check if there are any records left after the current search
+    let scratches = await db('scratches')
+      .select('*')
+      .where('body', 'ilike', searchPattern)
+      .andWhere('id', '>', after)
+      .orderBy('created_at', 'desc')
+      .limit(limit + 1);
+
+    let isFinished = false;
+    if (scratches.length > limit) {
+      scratches.pop();
+    } else {
+      isFinished = true;
+    }
+
+    return res.json({ scratches, isFinished });
+  } catch (err) {
+    return res.status(500).json({ err: 'An error occured while searching for scratches' });
+  }
+};
+
 exports.createScratch = async (req, res) => {
   let { body, parentId, rescratchedId, mediaUrl } = req.body;
 

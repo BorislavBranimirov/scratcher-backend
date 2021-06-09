@@ -7,6 +7,9 @@ const { verifyAccessToken } = require('../controllers/authController');
 router.route('/')
   .post(verifyAccessToken, scratchController.createScratch);
 
+router.route('/search')
+  .get(scratchController.searchScratches);
+
 router.route('/:id')
   .get(scratchController.getScratchById)
   .delete(verifyAccessToken, scratchController.deleteScratchById);
