@@ -127,6 +127,40 @@ exports.deleteUserById = async (req, res) => {
   }
 };
 
+exports.getUserTimeline = async (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  const limit = parseInt(req.query.limit, 10) || 50;
+
+  // scratch id, after which to give results
+  const after = parseInt(req.query.after, 10);
+
+  try {
+    // get an extra record to check if there are any records left after the current search
+    let scratches = await db('scratches')
+      .select('*')
+      .where({ author_id: id })
+      .modify((builder) => {
+        // if after has been specified, add an additional where clause
+        if (after) {
+          builder.where('id', '<', after)
+        }
+      })
+      .orderBy('id', 'desc')
+      .limit(limit + 1);
+
+    let isFinished = false;
+    if (scratches.length > limit) {
+      scratches.pop();
+    } else {
+      isFinished = true;
+    }
+
+    return res.json({ scratches, isFinished });
+  } catch (err) {
+    return res.status(500).json({ err: 'An error occurred while getting user\'s timeline' });
+  }
+};
+
 exports.getFollowersById = async (req, res) => {
   const id = parseInt(req.params.id, 10);
 
