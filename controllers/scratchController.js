@@ -143,6 +143,47 @@ exports.deleteScratchById = async (req, res) => {
   }
 };
 
+/**
+ * Used to get a scratch, its parent chain, and all direct replies
+ */
+exports.getScratchConversationById = async (req, res) => {
+  const id = parseInt(req.params.id, 10);
+
+  try {
+    const obj = {
+      parentChain: [],
+      scratch: null,
+      replies: []
+    };
+
+    obj.scratch = await db('scratches')
+      .select('*')
+      .where({ id })
+      .first();
+    if (!obj.scratch) {
+      return res.status(404).json({ err: 'Scratch not found' });
+    }
+
+    let parentId = obj.scratch.parent_id;
+    while (parentId) {
+      const parent = await db('scratches')
+        .select('*')
+        .where({ id: parentId })
+        .first();
+      obj.parentChain.unshift(parent);
+      parentId = parent.parent_id;
+    }
+
+    obj.replies = await await db('scratches')
+      .select('*')
+      .where({ parent_id: id });
+
+    return res.json(obj);
+  } catch (err) {
+    return res.status(500).json({ err: 'An error occured while searching for scratch conversation' });
+  }
+};
+
 exports.getUsersRescratchedByScratchId = async (req, res) => {
   const id = parseInt(req.params.id, 10);
 
