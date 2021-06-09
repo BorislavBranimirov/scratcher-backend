@@ -7,6 +7,9 @@ const { verifyAccessToken } = require('../controllers/authController');
 router.route('/')
   .post(userController.createUser);
 
+router.route('/timeline')
+  .get(verifyAccessToken, userController.getHomeTimeline);
+
 router.route('/search')
   .get(userController.searchUsers);
 

@@ -2,6 +2,45 @@ const db = require('../db/db');
 const bcrypt = require('bcryptjs');
 const userUtils = require('../utils/userUtils');
 
+exports.getHomeTimeline = async (req, res) => {
+  const limit = parseInt(req.query.limit, 10) || 50;
+
+  // scratch id, after which to give results
+  const after = parseInt(req.query.after, 10);
+
+  try {
+    // get the ids of each user being followed by the logged-in user
+    const followedUserIds = await db('follows')
+      .select('*')
+      .where({ follower_id: res.locals.user.id })
+      .pluck('followed_id');
+
+    // get an extra record to check if there are any records left after the current search
+    let scratches = await db('scratches')
+      .select('*')
+      .whereIn('author_id', [res.locals.user.id, ...followedUserIds])
+      .modify((builder) => {
+        // if after has been specified, add an additional where clause
+        if (after) {
+          builder.where('id', '<', after)
+        }
+      })
+      .orderBy('id', 'desc')
+      .limit(limit + 1);
+
+    let isFinished = false;
+    if (scratches.length > limit) {
+      scratches.pop();
+    } else {
+      isFinished = true;
+    }
+
+    return res.json({ scratches, isFinished });
+  } catch (err) {
+    return res.status(500).json({ err: 'An error occurred while getting your timeline' });
+  }
+};
+
 exports.searchUsers = async (req, res) => {
   const searchPattern = (req.query.query) ? `%${req.query.query}%` : '%';
   const limit = parseInt(req.query.limit, 10) || 50;
