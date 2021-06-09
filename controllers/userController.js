@@ -5,6 +5,8 @@ const userUtils = require('../utils/userUtils');
 exports.searchUsers = async (req, res) => {
   const searchPattern = (req.query.query) ? `%${req.query.query}%` : '%';
   const limit = parseInt(req.query.limit, 10) || 50;
+
+  // username, after which to give results
   const after = (req.query.after) || '';
 
   try {

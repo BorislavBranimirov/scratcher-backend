@@ -19,6 +19,8 @@ exports.getScratchById = async (req, res) => {
 exports.searchScratches = async (req, res) => {
   const searchPattern = (req.query.query) ? `%${req.query.query}%` : '%';
   const limit = parseInt(req.query.limit, 10) || 50;
+
+  // scratch id, after which to give results
   const after = parseInt(req.query.after, 10);
 
   try {
