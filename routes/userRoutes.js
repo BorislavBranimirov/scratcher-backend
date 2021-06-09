@@ -7,6 +7,9 @@ const { verifyAccessToken } = require('../controllers/authController');
 router.route('/')
   .post(userController.createUser);
 
+router.route('/search')
+  .get(userController.searchUsers);
+
 router.route('/username/:username')
   .get(userController.getUserByUsername);
 

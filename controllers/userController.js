@@ -2,6 +2,33 @@ const db = require('../db/db');
 const bcrypt = require('bcryptjs');
 const userUtils = require('../utils/userUtils');
 
+exports.searchUsers = async (req, res) => {
+  const searchPattern = (req.query.query) ? `%${req.query.query}%` : '%';
+  const limit = parseInt(req.query.limit, 10) || 50;
+  const after = (req.query.after) || '';
+
+  try {
+    // get an extra record to check if there are any records left after the current search
+    let users = await db('users')
+      .select('id', 'username', 'description', 'profile_image_url')
+      .where('username', 'ilike', searchPattern)
+      .andWhere('username', '>', after)
+      .orderBy('username')
+      .limit(limit + 1);
+
+    let isFinished = false;
+    if (users.length > limit) {
+      users.pop();
+    } else {
+      isFinished = true;
+    }
+
+    return res.json({ users, isFinished });
+  } catch (err) {
+    return res.status(500).json({ err: 'An error occured while searching for users' });
+  }
+};
+
 exports.getUserByUsername = async (req, res) => {
   try {
     const user = await db('users')
