@@ -19,15 +19,20 @@ exports.getScratchById = async (req, res) => {
 exports.searchScratches = async (req, res) => {
   const searchPattern = (req.query.query) ? `%${req.query.query}%` : '%';
   const limit = parseInt(req.query.limit, 10) || 50;
-  const after = (req.query.after) ? parseInt(req.query.after, 10) : 0;
+  const after = parseInt(req.query.after, 10);
 
   try {
     // get an extra record to check if there are any records left after the current search
     let scratches = await db('scratches')
       .select('*')
       .where('body', 'ilike', searchPattern)
-      .andWhere('id', '>', after)
-      .orderBy('created_at', 'desc')
+      .modify((builder) => {
+        // if after has been specified, add an additional where clause
+        if (after) {
+          builder.where('id', '<', after)
+        }
+      })
+      .orderBy('id', 'desc')
       .limit(limit + 1);
 
     let isFinished = false;
