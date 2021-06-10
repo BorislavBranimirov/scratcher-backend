@@ -24,10 +24,10 @@ router.route('/:id/timeline')
   .get(userController.getUserTimeline);
 
 router.route('/:id/followers')
-  .get(userController.getFollowersById);
+  .get(verifyAccessToken, userController.getFollowersById);
 
 router.route('/:id/followed')
-  .get(userController.getFollowedById);
+  .get(verifyAccessToken, userController.getFollowedById);
 
 router.route('/:id/follow')
   .post(verifyAccessToken, userController.followUserById)

@@ -18,7 +18,7 @@ router.route('/:id/conversation')
   .get(scratchController.getScratchConversationById);
 
 router.route('/:id/rescratches')
-  .get(scratchController.getUsersRescratchedByScratchId);
+  .get(verifyAccessToken, scratchController.getUsersRescratchedByScratchId);
 
 router.route('/:id/pin')
   .post(verifyAccessToken, scratchController.pinScratch)
@@ -29,7 +29,7 @@ router.route('/:id/bookmark')
   .delete(verifyAccessToken, scratchController.unbookmarkScratchById);
 
 router.route('/:id/likes')
-  .get(scratchController.getUsersLikedByScratchId)
+  .get(verifyAccessToken, scratchController.getUsersLikedByScratchId)
   .post(verifyAccessToken, scratchController.likeScratchById)
   .delete(verifyAccessToken, scratchController.unlikeScratchById);
 

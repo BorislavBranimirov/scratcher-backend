@@ -194,6 +194,18 @@ exports.getUsersRescratchedByScratchId = async (req, res) => {
       .join('users', 'author_id', 'users.id')
       .where({ rescratched_id: id });
 
+    for (const user of users) {
+      const follow = await db('follows')
+        .select('*')
+        .where({
+          follower_id: res.locals.user.id,
+          followed_id: user.id
+        })
+        .first();
+
+      user.isFollowing = (follow) ? true : false;
+    }
+
     return res.json(users);
   } catch (err) {
     return errorUtils.tryCatchError(res, err, 'An error occurred while searching for users who shared the scratch');
@@ -343,6 +355,18 @@ exports.getUsersLikedByScratchId = async (req, res) => {
       .select('id', 'username', 'description', 'profile_image_url')
       .join('users', 'user_id', 'id')
       .where({ scratch_id: id });
+
+    for (const user of users) {
+      const follow = await db('follows')
+        .select('*')
+        .where({
+          follower_id: res.locals.user.id,
+          followed_id: user.id
+        })
+        .first();
+
+      user.isFollowing = (follow) ? true : false;
+    }
 
     return res.json(users);
   } catch (err) {

@@ -210,6 +210,18 @@ exports.getFollowersById = async (req, res) => {
       .join('users', 'follower_id', 'id')
       .where({ followed_id: id });
 
+    for (const follower of followers) {
+      const follow = await db('follows')
+        .select('*')
+        .where({
+          follower_id: res.locals.user.id,
+          followed_id: follower.id
+        })
+        .first();
+
+      follower.isFollowing = (follow) ? true : false;
+    }
+
     return res.json(followers);
   } catch (err) {
     return errorUtils.tryCatchError(res, err, 'An error occurred while searching for followers');
@@ -224,6 +236,19 @@ exports.getFollowedById = async (req, res) => {
       .select('id', 'username', 'description', 'profile_image_url')
       .join('users', 'followed_id', 'id')
       .where({ follower_id: id });
+
+    for (const follower of followed) {
+      const follow = await db('follows')
+        .select('*')
+        .where({
+          follower_id:
+            res.locals.user.id,
+          followed_id: follower.id
+        })
+        .first();
+
+      follower.isFollowing = (follow) ? true : false;
+    }
 
     return res.json(followed);
   } catch (err) {
