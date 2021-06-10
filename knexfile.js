@@ -1,3 +1,5 @@
+require('dotenv').config(); // required for npm scripts
+
 module.exports = {
   development: {
     client: 'pg',
