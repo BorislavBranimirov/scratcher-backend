@@ -2,6 +2,7 @@ const db = require('../db/db');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const userUtils = require('../utils/userUtils');
+const errorUtils = require('../utils/errorUtils');
 
 exports.verifyAccessToken = (req, res, next) => {
   // access token should be supplied in an Authorization header with a Bearer schema
@@ -75,6 +76,6 @@ exports.login = async (req, res) => {
       accessToken: accessToken
     });
   } catch (err) {
-    return res.status(500).json({ err: 'An error occurred while trying to log in' });
+    return errorUtils.tryCatchError(res, err, 'An error occurred while trying to log in');
   }
 };

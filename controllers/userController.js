@@ -1,6 +1,7 @@
 const db = require('../db/db');
 const bcrypt = require('bcryptjs');
 const userUtils = require('../utils/userUtils');
+const errorUtils = require('../utils/errorUtils');
 
 exports.getHomeTimeline = async (req, res) => {
   const limit = parseInt(req.query.limit, 10) || 50;
@@ -37,7 +38,7 @@ exports.getHomeTimeline = async (req, res) => {
 
     return res.json({ scratches, isFinished });
   } catch (err) {
-    return res.status(500).json({ err: 'An error occurred while getting your timeline' });
+    return errorUtils.tryCatchError(res, err, 'An error occurred while getting home timeline');
   }
 };
 
@@ -66,7 +67,7 @@ exports.searchUsers = async (req, res) => {
 
     return res.json({ users, isFinished });
   } catch (err) {
-    return res.status(500).json({ err: 'An error occured while searching for users' });
+    return errorUtils.tryCatchError(res, err, 'An error occured while searching for users');
   }
 };
 
@@ -82,7 +83,7 @@ exports.getUserByUsername = async (req, res) => {
 
     return res.json(user);
   } catch (err) {
-    return res.status(500).json({ err: 'An error occured while searching for user' });
+    return errorUtils.tryCatchError(res, err, 'An error occured while searching for user');
   }
 };
 
@@ -98,7 +99,7 @@ exports.getUserById = async (req, res) => {
 
     return res.json(user);
   } catch (err) {
-    return res.status(500).json({ err: 'An error occured while searching for user' });
+    return errorUtils.tryCatchError(res, err, 'An error occured while searching for user');
   }
 };
 
@@ -137,7 +138,7 @@ exports.createUser = async (req, res) => {
       ...user
     });
   } catch (err) {
-    return res.status(500).json({ err: 'An error occurred while creating user' });
+    return errorUtils.tryCatchError(res, err, 'An error occurred while creating user');
   }
 };
 
@@ -162,7 +163,7 @@ exports.deleteUserById = async (req, res) => {
       ...user
     });
   } catch (err) {
-    return res.status(500).json({ err: 'An error occurred while deleting user' });
+    return errorUtils.tryCatchError(res, err, 'An error occurred while deleting user');
   }
 };
 
@@ -196,7 +197,7 @@ exports.getUserTimeline = async (req, res) => {
 
     return res.json({ scratches, isFinished });
   } catch (err) {
-    return res.status(500).json({ err: 'An error occurred while getting user\'s timeline' });
+    return errorUtils.tryCatchError(res, err, 'An error occurred while getting user\'s timeline');
   }
 };
 
@@ -211,7 +212,7 @@ exports.getFollowersById = async (req, res) => {
 
     return res.json(followers);
   } catch (err) {
-    return res.status(500).json({ err: 'An error occurred while searching for followers' });
+    return errorUtils.tryCatchError(res, err, 'An error occurred while searching for followers');
   }
 };
 
@@ -226,7 +227,7 @@ exports.getFollowedById = async (req, res) => {
 
     return res.json(followed);
   } catch (err) {
-    return res.status(500).json({ err: 'An error occurred while searching for followed users' });
+    return errorUtils.tryCatchError(res, err, 'An error occurred while searching for followed users');
   }
 };
 
@@ -269,7 +270,7 @@ exports.followUserById = async (req, res) => {
       ...follow
     });
   } catch (err) {
-    return res.status(500).json({ err: 'An error occurred while trying to follow user' });
+    return errorUtils.tryCatchError(res, err, 'An error occurred while trying to follow user');
   }
 };
 
@@ -304,7 +305,7 @@ exports.unfollowUserById = async (req, res) => {
       ...unfollow
     });
   } catch (err) {
-    return res.status(500).json({ err: 'An error occurred while trying to unfollow user' });
+    return errorUtils.tryCatchError(res, err, 'An error occurred while trying to unfollow user');
   }
 };
 
@@ -323,7 +324,7 @@ exports.getBookmarksByUserId = async (req, res) => {
 
     return res.json(bookmarks);
   } catch (err) {
-    return res.status(500).json({ err: 'An error occurred while searching for bookmarks' });
+    return errorUtils.tryCatchError(res, err, 'An error occurred while searching for bookmarks');
   }
 };
 
@@ -338,6 +339,6 @@ exports.getLikesByUserId = async (req, res) => {
 
     return res.json(likes);
   } catch (err) {
-    return res.status(500).json({ err: 'An error occurred while searching for likes' });
+    return errorUtils.tryCatchError(res, err, 'An error occurred while searching for likes');
   }
 };

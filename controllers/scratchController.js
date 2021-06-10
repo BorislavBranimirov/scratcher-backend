@@ -1,4 +1,5 @@
 const db = require('../db/db');
+const errorUtils = require('../utils/errorUtils');
 
 exports.getScratchById = async (req, res) => {
   try {
@@ -12,7 +13,7 @@ exports.getScratchById = async (req, res) => {
 
     return res.json(scratch);
   } catch (err) {
-    return res.status(500).json({ err: 'An error occured while searching for scratch' });
+    return errorUtils.tryCatchError(res, err, 'An error occured while searching for scratch');
   }
 };
 
@@ -46,7 +47,7 @@ exports.searchScratches = async (req, res) => {
 
     return res.json({ scratches, isFinished });
   } catch (err) {
-    return res.status(500).json({ err: 'An error occured while searching for scratches' });
+    return errorUtils.tryCatchError(res, err, 'An error occured while searching for scratches');
   }
 };
 
@@ -110,7 +111,7 @@ exports.createScratch = async (req, res) => {
       ...scratch
     });
   } catch (err) {
-    return res.status(500).json({ err: 'An error occured while creating scratch' });
+    return errorUtils.tryCatchError(res, err, 'An error occured while creating scratch');
   }
 };
 
@@ -139,7 +140,7 @@ exports.deleteScratchById = async (req, res) => {
       ...scratch
     });
   } catch (err) {
-    return res.status(500).json({ err: 'An error occured while deleting scratch' });
+    return errorUtils.tryCatchError(res, err, 'An error occured while deleting scratch');
   }
 };
 
@@ -180,7 +181,7 @@ exports.getScratchConversationById = async (req, res) => {
 
     return res.json(obj);
   } catch (err) {
-    return res.status(500).json({ err: 'An error occured while searching for scratch conversation' });
+    return errorUtils.tryCatchError(res, err, 'An error occured while searching for scratch conversation');
   }
 };
 
@@ -195,7 +196,7 @@ exports.getUsersRescratchedByScratchId = async (req, res) => {
 
     return res.json(users);
   } catch (err) {
-    return res.status(500).json({ err: 'An error occurred while searching for users who shared the scratch' });
+    return errorUtils.tryCatchError(res, err, 'An error occurred while searching for users who shared the scratch');
   }
 };
 
@@ -232,7 +233,7 @@ exports.pinScratch = async (req, res) => {
       ...user
     });
   } catch (err) {
-    return res.status(500).json({ err: 'An error occurred while pinning scratch' });
+    return errorUtils.tryCatchError(res, err, 'An error occurred while pinning scratch');
   }
 };
 
@@ -259,7 +260,7 @@ exports.unpinScratch = async (req, res) => {
       pinned_id: id
     });
   } catch (err) {
-    return res.status(500).json({ err: 'An error occurred while unpinning scratch' });
+    return errorUtils.tryCatchError(res, err, 'An error occurred while unpinning scratch');
   }
 };
 
@@ -298,7 +299,7 @@ exports.bookmarkScratchById = async (req, res) => {
       ...bookmark
     });
   } catch (err) {
-    return res.status(500).json({ err: 'An error occurred while bookmarking scratch' });
+    return errorUtils.tryCatchError(res, err, 'An error occurred while bookmarking scratch');
   }
 };
 
@@ -330,7 +331,7 @@ exports.unbookmarkScratchById = async (req, res) => {
       ...bookmark
     });
   } catch (err) {
-    return res.status(500).json({ err: 'An error occurred while unbookmarking scratch' });
+    return errorUtils.tryCatchError(res, err, 'An error occurred while unbookmarking scratch');
   }
 };
 
@@ -345,7 +346,7 @@ exports.getUsersLikedByScratchId = async (req, res) => {
 
     return res.json(users);
   } catch (err) {
-    return res.status(500).json({ err: 'An error occurred while searching for users who liked the scratch' });
+    return errorUtils.tryCatchError(res, err, 'An error occurred while searching for users who liked the scratch');
   }
 };
 
@@ -384,7 +385,7 @@ exports.likeScratchById = async (req, res) => {
       ...like
     });
   } catch (err) {
-    return res.status(500).json({ err: 'An error occurred while liking scratch' });
+    return errorUtils.tryCatchError(res, err, 'An error occurred while liking scratch');
   }
 };
 
@@ -416,6 +417,6 @@ exports.unlikeScratchById = async (req, res) => {
       ...like
     });
   } catch (err) {
-    return res.status(500).json({ err: 'An error occurred while unliking scratch' });
+    return errorUtils.tryCatchError(res, err, 'An error occurred while unliking scratch');
   }
 };
