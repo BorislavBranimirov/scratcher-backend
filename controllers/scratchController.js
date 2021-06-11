@@ -56,10 +56,13 @@ exports.createScratch = async (req, res) => {
 
   try {
     if (body) {
+      if (typeof body !== 'string') {
+        return res.status(400).json({ err: 'Invalid body' });
+      }
       body = body.trim();
       const scratchLimit = 280;
       if (body.length > scratchLimit) {
-        return res.status(400).json({ err: `Scartch body is limited to ${scratchLimit} characters` });
+        return res.status(400).json({ err: `Scratch body is limited to ${scratchLimit} characters` });
       }
     }
 
