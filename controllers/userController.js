@@ -81,6 +81,14 @@ exports.getUserByUsername = async (req, res) => {
       return res.status(404).json({ err: 'User not found' });
     }
 
+    user.followerCount = (await db('follows')
+      .count('*')
+      .where({ followed_id: user.id }))[0].count;
+
+    user.followedCount = (await db('follows')
+      .count('*')
+      .where({ follower_id: user.id }))[0].count;
+
     return res.json(user);
   } catch (err) {
     return errorUtils.tryCatchError(res, err, 'An error occured while searching for user');
@@ -96,6 +104,14 @@ exports.getUserById = async (req, res) => {
     if (!user) {
       return res.status(404).json({ err: 'User not found' });
     }
+
+    user.followerCount = (await db('follows')
+      .count('*')
+      .where({ followed_id: user.id }))[0].count;
+
+    user.followedCount = (await db('follows')
+      .count('*')
+      .where({ follower_id: user.id }))[0].count;
 
     return res.json(user);
   } catch (err) {
