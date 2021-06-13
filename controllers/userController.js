@@ -65,6 +65,23 @@ exports.searchUsers = async (req, res) => {
       isFinished = true;
     }
 
+    for (const user of users) {
+      user.isFollowing = false;
+      if (res.locals.user) {
+        const follow = await db('follows')
+          .select('*')
+          .where({
+            follower_id: res.locals.user.id,
+            followed_id: user.id
+          })
+          .first();
+
+        if (follow) {
+          user.isFollowing = true;
+        }
+      }
+    }
+
     return res.json({ users, isFinished });
   } catch (err) {
     return errorUtils.tryCatchError(res, err, 'An error occured while searching for users');
@@ -89,6 +106,21 @@ exports.getUserByUsername = async (req, res) => {
       .count('*')
       .where({ follower_id: user.id }))[0].count;
 
+    user.isFollowing = false;
+    if (res.locals.user) {
+      const follow = await db('follows')
+        .select('*')
+        .where({
+          follower_id: res.locals.user.id,
+          followed_id: user.id
+        })
+        .first();
+
+      if (follow) {
+        user.isFollowing = true;
+      }
+    }
+
     return res.json(user);
   } catch (err) {
     return errorUtils.tryCatchError(res, err, 'An error occured while searching for user');
@@ -112,6 +144,21 @@ exports.getUserById = async (req, res) => {
     user.followedCount = (await db('follows')
       .count('*')
       .where({ follower_id: user.id }))[0].count;
+
+    user.isFollowing = false;
+    if (res.locals.user) {
+      const follow = await db('follows')
+        .select('*')
+        .where({
+          follower_id: res.locals.user.id,
+          followed_id: user.id
+        })
+        .first();
+
+      if (follow) {
+        user.isFollowing = true;
+      }
+    }
 
     return res.json(user);
   } catch (err) {
@@ -257,8 +304,7 @@ exports.getFollowedById = async (req, res) => {
       const follow = await db('follows')
         .select('*')
         .where({
-          follower_id:
-            res.locals.user.id,
+          follower_id: res.locals.user.id,
           followed_id: follower.id
         })
         .first();
