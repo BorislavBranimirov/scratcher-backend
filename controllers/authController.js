@@ -8,7 +8,7 @@ exports.verifyAccessToken = (req, res, next) => {
   // access token should be supplied in an Authorization header with a Bearer schema
   if (req.headers['authorization'] === undefined ||
     req.headers['authorization'].split(' ')[0] !== 'Bearer') {
-    res.status(401).json({ err: 'Unauthorized' });
+    return res.status(401).json({ err: 'Unauthorized' });
   }
 
   const accessToken = req.headers['authorization'].split(' ')[1];
@@ -24,7 +24,7 @@ exports.verifyAccessToken = (req, res, next) => {
 
     next();
   } catch (err) {
-    res.status(401).json({ err: 'Unauthorized' });
+    return res.status(401).json({ err: 'Unauthorized' });
   }
 };
 
