@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 
 const userController = require('../controllers/userController');
-const { verifyAccessToken } = require('../controllers/authController');
+const { verifyAccessToken, passUserInfo } = require('../controllers/authController');
 
 router.route('/')
   .post(userController.createUser);
@@ -11,13 +11,13 @@ router.route('/timeline')
   .get(verifyAccessToken, userController.getHomeTimeline);
 
 router.route('/search')
-  .get(userController.searchUsers);
+  .get(passUserInfo, userController.searchUsers);
 
 router.route('/username/:username')
-  .get(userController.getUserByUsername);
+  .get(passUserInfo, userController.getUserByUsername);
 
 router.route('/:id')
-  .get(userController.getUserById)
+  .get(passUserInfo, userController.getUserById)
   .delete(verifyAccessToken, userController.deleteUserById);
 
 router.route('/:id/timeline')
