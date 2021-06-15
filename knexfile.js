@@ -7,6 +7,10 @@ const strToSnake = (str) => {
 };
 
 const objToCamel = (obj) => {
+  if (typeof obj !== 'object' || obj === null) {
+    return obj;
+  }
+  
   const newObj = {};
   for (const [key, value] of Object.entries(obj)) {
     newObj[key.replace(/_[a-z]/g, (match) => {
