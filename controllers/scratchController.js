@@ -101,13 +101,13 @@ exports.createScratch = async (req, res) => {
 
     const [scratch] = await db('scratches')
       .insert({
-        author_id: res.locals.user.id,
-        rescratched_id: rescratchedId,
-        parent_id: parentId,
+        authorId: res.locals.user.id,
+        rescratchedId,
+        parentId,
         body,
-        media_url: mediaUrl
+        mediaUrl
       })
-      .returning(['id', 'author_id']);
+      .returning(['id', 'authorId']);
 
     return res.status(201).json({
       success: true,
@@ -129,14 +129,14 @@ exports.deleteScratchById = async (req, res) => {
     if (!scratchOld) {
       return res.status(404).json({ err: 'Scratch not found' });
     }
-    if (scratchOld.author_id !== res.locals.user.id) {
+    if (scratchOld.authorId !== res.locals.user.id) {
       return res.status(401).json({ err: 'Unauthorized to delete scratch' });
     }
 
     const [scratch] = await db('scratches')
       .where({ id })
       .del()
-      .returning(['id', 'author_id']);
+      .returning(['id', 'authorId']);
 
     return res.json({
       success: true,
@@ -168,19 +168,19 @@ exports.getScratchConversationById = async (req, res) => {
       return res.status(404).json({ err: 'Scratch not found' });
     }
 
-    let parentId = obj.scratch.parent_id;
+    let parentId = obj.scratch.parentId;
     while (parentId) {
       const parent = await db('scratches')
         .select('*')
         .where({ id: parentId })
         .first();
       obj.parentChain.unshift(parent);
-      parentId = parent.parent_id;
+      parentId = parent.parentId;
     }
 
-    obj.replies = await await db('scratches')
+    obj.replies = await db('scratches')
       .select('*')
-      .where({ parent_id: id });
+      .where({ parentId: id });
 
     return res.json(obj);
   } catch (err) {
@@ -193,16 +193,16 @@ exports.getUsersRescratchedByScratchId = async (req, res) => {
 
   try {
     const users = await db('scratches')
-      .select('users.id', 'name', 'username', 'description', 'profile_image_url')
-      .join('users', 'author_id', 'users.id')
-      .where({ rescratched_id: id });
+      .select('users.id', 'name', 'username', 'description', 'profileImageUrl')
+      .join('users', 'authorId', 'users.id')
+      .where({ rescratchedId: id });
 
     for (const user of users) {
       const follow = await db('follows')
         .select('*')
         .where({
-          follower_id: res.locals.user.id,
-          followed_id: user.id
+          followerId: res.locals.user.id,
+          followedId: user.id
         })
         .first();
 
@@ -220,28 +220,28 @@ exports.pinScratch = async (req, res) => {
 
   try {
     const scratch = await db('scratches')
-      .select(['id', 'author_id'])
+      .select(['id', 'authorId'])
       .where({ id })
       .first();
     if (!scratch) {
       return res.status(404).json({ err: 'Scratch not found' });
     }
-    if (scratch.author_id !== res.locals.user.id) {
+    if (scratch.authorId !== res.locals.user.id) {
       return res.status(401).json({ err: 'Scratches can only be pinned by their author' });
     }
 
     const userOld = await db('users')
-      .select(['id', 'pinned_id'])
+      .select(['id', 'pinnedId'])
       .where({ id: res.locals.user.id })
       .first();
-    if (userOld.pinned_id === id) {
+    if (userOld.pinnedId === id) {
       return res.status(400).json({ err: 'Scratch is already pinned' });
     }
 
     const [user] = await db('users')
       .where({ id: res.locals.user.id })
-      .update({ pinned_id: id })
-      .returning(['id', 'pinned_id']);
+      .update({ pinnedId: id })
+      .returning(['id', 'pinnedId']);
 
     return res.json({
       success: true,
@@ -257,22 +257,22 @@ exports.unpinScratch = async (req, res) => {
 
   try {
     const userOld = await db('users')
-      .select(['id', 'pinned_id'])
+      .select(['id', 'pinnedId'])
       .where({ id: res.locals.user.id })
       .first();
-    if (userOld.pinned_id !== id) {
+    if (userOld.pinnedId !== id) {
       return res.status(400).json({ err: 'Scratch is not pinned' });
     }
 
     const [user] = await db('users')
       .where({ id: res.locals.user.id })
-      .update({ pinned_id: null })
+      .update({ pinnedId: null })
       .returning(['id']);
 
     return res.json({
       success: true,
       ...user,
-      pinned_id: id
+      pinnedId: id
     });
   } catch (err) {
     return errorUtils.tryCatchError(res, err, 'An error occurred while unpinning scratch');
@@ -294,8 +294,8 @@ exports.bookmarkScratchById = async (req, res) => {
     const isBookmarked = await db('bookmarks')
       .select('*')
       .where({
-        user_id: res.locals.user.id,
-        scratch_id: id
+        userId: res.locals.user.id,
+        scratchId: id
       })
       .first();
     if (isBookmarked) {
@@ -304,10 +304,10 @@ exports.bookmarkScratchById = async (req, res) => {
 
     const [bookmark] = await db('bookmarks')
       .insert({
-        user_id: res.locals.user.id,
-        scratch_id: id
+        userId: res.locals.user.id,
+        scratchId: id
       })
-      .returning(['user_id', 'scratch_id']);
+      .returning(['userId', 'scratchId']);
 
     return res.status(201).json({
       success: true,
@@ -325,8 +325,8 @@ exports.unbookmarkScratchById = async (req, res) => {
     const isBookmarked = await db('bookmarks')
       .select('*')
       .where({
-        user_id: res.locals.user.id,
-        scratch_id: id
+        userId: res.locals.user.id,
+        scratchId: id
       })
       .first();
     if (!isBookmarked) {
@@ -335,11 +335,11 @@ exports.unbookmarkScratchById = async (req, res) => {
 
     const [bookmark] = await db('bookmarks')
       .where({
-        user_id: res.locals.user.id,
-        scratch_id: id
+        userId: res.locals.user.id,
+        scratchId: id
       })
       .del()
-      .returning(['user_id', 'scratch_id']);
+      .returning(['userId', 'scratchId']);
 
     return res.json({
       success: true,
@@ -355,16 +355,16 @@ exports.getUsersLikedByScratchId = async (req, res) => {
 
   try {
     const users = await db('likes')
-      .select('id', 'name', 'username', 'description', 'profile_image_url')
-      .join('users', 'user_id', 'id')
-      .where({ scratch_id: id });
+      .select('id', 'name', 'username', 'description', 'profileImageUrl')
+      .join('users', 'userId', 'id')
+      .where({ scratchId: id });
 
     for (const user of users) {
       const follow = await db('follows')
         .select('*')
         .where({
-          follower_id: res.locals.user.id,
-          followed_id: user.id
+          followerId: res.locals.user.id,
+          followedId: user.id
         })
         .first();
 
@@ -392,8 +392,8 @@ exports.likeScratchById = async (req, res) => {
     const isLiked = await db('likes')
       .select('*')
       .where({
-        user_id: res.locals.user.id,
-        scratch_id: id
+        userId: res.locals.user.id,
+        scratchId: id
       })
       .first();
     if (isLiked) {
@@ -402,10 +402,10 @@ exports.likeScratchById = async (req, res) => {
 
     const [like] = await db('likes')
       .insert({
-        user_id: res.locals.user.id,
-        scratch_id: id
+        userId: res.locals.user.id,
+        scratchId: id
       })
-      .returning(['user_id', 'scratch_id']);
+      .returning(['userId', 'scratchId']);
 
     return res.status(201).json({
       success: true,
@@ -423,8 +423,8 @@ exports.unlikeScratchById = async (req, res) => {
     const isLiked = await db('likes')
       .select('*')
       .where({
-        user_id: res.locals.user.id,
-        scratch_id: id
+        userId: res.locals.user.id,
+        scratchId: id
       })
       .first();
     if (!isLiked) {
@@ -433,11 +433,11 @@ exports.unlikeScratchById = async (req, res) => {
 
     const [like] = await db('likes')
       .where({
-        user_id: res.locals.user.id,
-        scratch_id: id
+        userId: res.locals.user.id,
+        scratchId: id
       })
       .del()
-      .returning(['user_id', 'scratch_id']);
+      .returning(['userId', 'scratchId']);
 
     return res.json({
       success: true,

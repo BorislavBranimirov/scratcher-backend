@@ -1,5 +1,21 @@
 require('dotenv').config(); // required for npm scripts
 
+const strToSnake = (str) => {
+  return str.replace(/[A-Z]/g, (match) => {
+    return '_' + match.toLowerCase();
+  });
+};
+
+const objToCamel = (obj) => {
+  const newObj = {};
+  for (const [key, value] of Object.entries(obj)) {
+    newObj[key.replace(/_[a-z]/g, (match) => {
+      return match[1].toUpperCase();
+    })] = value;
+  }
+  return newObj;
+};
+
 module.exports = {
   development: {
     client: 'pg',
@@ -16,6 +32,16 @@ module.exports = {
     seeds: {
       directory: './db/seeds'
     },
+    wrapIdentifier: (id, wrapper) => {
+      return wrapper(strToSnake(id));
+    },
+    postProcessResponse: (result) => {
+      if (Array.isArray(result)) {
+        return result.map(row => objToCamel(row));
+      } else {
+        return objToCamel(result);
+      }
+    },
     debug: true
   },
 
@@ -27,6 +53,16 @@ module.exports = {
     },
     seeds: {
       directory: './db/seeds'
+    },
+    wrapIdentifier: (id, wrapper) => {
+      return wrapper(strToSnake(id));
+    },
+    postProcessResponse: (result) => {
+      if (Array.isArray(result)) {
+        return result.map(row => objToCamel(row));
+      } else {
+        return objToCamel(result);
+      }
     }
   }
 };

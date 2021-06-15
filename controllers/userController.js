@@ -13,13 +13,13 @@ exports.getHomeTimeline = async (req, res) => {
     // get the ids of each user being followed by the logged-in user
     const followedUserIds = await db('follows')
       .select('*')
-      .where({ follower_id: res.locals.user.id })
-      .pluck('followed_id');
+      .where({ followerId: res.locals.user.id })
+      .pluck('followedId');
 
     // get an extra record to check if there are any records left after the current search
     let scratches = await db('scratches')
       .select('*')
-      .whereIn('author_id', [res.locals.user.id, ...followedUserIds])
+      .whereIn('authorId', [res.locals.user.id, ...followedUserIds])
       .modify((builder) => {
         // if after has been specified, add an additional where clause
         if (after) {
@@ -52,7 +52,7 @@ exports.searchUsers = async (req, res) => {
   try {
     // get an extra record to check if there are any records left after the current search
     let users = await db('users')
-      .select('id', 'name', 'username', 'description', 'profile_image_url')
+      .select('id', 'name', 'username', 'description', 'profileImageUrl')
       .where('username', 'ilike', searchPattern)
       .andWhere('username', '>', after)
       .orderBy('username')
@@ -71,8 +71,8 @@ exports.searchUsers = async (req, res) => {
         const follow = await db('follows')
           .select('*')
           .where({
-            follower_id: res.locals.user.id,
-            followed_id: user.id
+            followerId: res.locals.user.id,
+            followedId: user.id
           })
           .first();
 
@@ -91,8 +91,8 @@ exports.searchUsers = async (req, res) => {
 exports.getUserByUsername = async (req, res) => {
   try {
     const user = await db('users')
-      .select('id', 'name', 'username', 'created_at', 'description',
-        'pinned_id', 'profile_image_url', 'profile_banner_url')
+      .select('id', 'name', 'username', 'createdAt', 'description',
+        'pinnedId', 'profileImageUrl', 'profileBannerUrl')
       .where({ username: req.params.username })
       .first();
     if (!user) {
@@ -101,19 +101,19 @@ exports.getUserByUsername = async (req, res) => {
 
     user.followerCount = (await db('follows')
       .count('*')
-      .where({ followed_id: user.id }))[0].count;
+      .where({ followedId: user.id }))[0].count;
 
     user.followedCount = (await db('follows')
       .count('*')
-      .where({ follower_id: user.id }))[0].count;
+      .where({ followerId: user.id }))[0].count;
 
     user.isFollowing = false;
     if (res.locals.user) {
       const follow = await db('follows')
         .select('*')
         .where({
-          follower_id: res.locals.user.id,
-          followed_id: user.id
+          followerId: res.locals.user.id,
+          followedId: user.id
         })
         .first();
 
@@ -131,8 +131,8 @@ exports.getUserByUsername = async (req, res) => {
 exports.getUserById = async (req, res) => {
   try {
     const user = await db('users')
-      .select('id', 'name', 'username', 'created_at', 'description',
-        'pinned_id', 'profile_image_url', 'profile_banner_url')
+      .select('id', 'name', 'username', 'createdAt', 'description',
+        'pinnedId', 'profileImageUrl', 'profileBannerUrl')
       .where({ id: parseInt(req.params.id, 10) })
       .first();
     if (!user) {
@@ -141,19 +141,19 @@ exports.getUserById = async (req, res) => {
 
     user.followerCount = (await db('follows')
       .count('*')
-      .where({ followed_id: user.id }))[0].count;
+      .where({ followedId: user.id }))[0].count;
 
     user.followedCount = (await db('follows')
       .count('*')
-      .where({ follower_id: user.id }))[0].count;
+      .where({ followerId: user.id }))[0].count;
 
     user.isFollowing = false;
     if (res.locals.user) {
       const follow = await db('follows')
         .select('*')
         .where({
-          follower_id: res.locals.user.id,
-          followed_id: user.id
+          followerId: res.locals.user.id,
+          followedId: user.id
         })
         .first();
 
@@ -244,7 +244,7 @@ exports.getUserTimeline = async (req, res) => {
     // get an extra record to check if there are any records left after the current search
     let scratches = await db('scratches')
       .select('*')
-      .where({ author_id: id })
+      .where({ authorId: id })
       .modify((builder) => {
         // if after has been specified, add an additional where clause
         if (after) {
@@ -272,16 +272,16 @@ exports.getFollowersById = async (req, res) => {
 
   try {
     const followers = await db('follows')
-      .select('id', 'name', 'username', 'description', 'profile_image_url')
-      .join('users', 'follower_id', 'id')
-      .where({ followed_id: id });
+      .select('id', 'name', 'username', 'description', 'profileImageUrl')
+      .join('users', 'followerId', 'id')
+      .where({ followedId: id });
 
     for (const follower of followers) {
       const follow = await db('follows')
         .select('*')
         .where({
-          follower_id: res.locals.user.id,
-          followed_id: follower.id
+          followerId: res.locals.user.id,
+          followedId: follower.id
         })
         .first();
 
@@ -299,16 +299,16 @@ exports.getFollowedById = async (req, res) => {
 
   try {
     const followed = await db('follows')
-      .select('id', 'name', 'username', 'description', 'profile_image_url')
-      .join('users', 'followed_id', 'id')
-      .where({ follower_id: id });
+      .select('id', 'name', 'username', 'description', 'profileImageUrl')
+      .join('users', 'followedId', 'id')
+      .where({ followerId: id });
 
     for (const follower of followed) {
       const follow = await db('follows')
         .select('*')
         .where({
-          follower_id: res.locals.user.id,
-          followed_id: follower.id
+          followerId: res.locals.user.id,
+          followedId: follower.id
         })
         .first();
 
@@ -340,8 +340,8 @@ exports.followUserById = async (req, res) => {
     const alreadyFollowed = await db('follows')
       .select('*')
       .where({
-        follower_id: res.locals.user.id,
-        followed_id: id
+        followerId: res.locals.user.id,
+        followedId: id
       })
       .first();
     if (alreadyFollowed) {
@@ -350,10 +350,10 @@ exports.followUserById = async (req, res) => {
 
     const [follow] = await db('follows')
       .insert({
-        follower_id: res.locals.user.id,
-        followed_id: id
+        followerId: res.locals.user.id,
+        followedId: id
       })
-      .returning(['follower_id', 'followed_id']);
+      .returning(['followerId', 'followedId']);
 
     return res.status(201).json({
       success: true,
@@ -371,8 +371,8 @@ exports.unfollowUserById = async (req, res) => {
     const alreadyFollowed = await db('follows')
       .select('*')
       .where({
-        follower_id: res.locals.user.id,
-        followed_id: id
+        followerId: res.locals.user.id,
+        followedId: id
       })
       .first();
     if (!alreadyFollowed) {
@@ -381,11 +381,11 @@ exports.unfollowUserById = async (req, res) => {
 
     const [unfollow] = await db('follows')
       .where({
-        follower_id: res.locals.user.id,
-        followed_id: id
+        followerId: res.locals.user.id,
+        followedId: id
       })
       .del()
-      .returning(['follower_id', 'followed_id']);
+      .returning(['followerId', 'followedId']);
     if (!unfollow) {
       return res.status(400).json({ err: 'User already unfollowed' });
     }
@@ -409,8 +409,8 @@ exports.getBookmarksByUserId = async (req, res) => {
   try {
     const bookmarks = await db('bookmarks')
       .select('scratches.*')
-      .join('scratches', 'scratch_id', 'id')
-      .where({ user_id: id });
+      .join('scratches', 'scratchId', 'id')
+      .where({ userId: id });
 
     return res.json(bookmarks);
   } catch (err) {
@@ -424,8 +424,8 @@ exports.getLikesByUserId = async (req, res) => {
   try {
     const likes = await db('likes')
       .select('scratches.*')
-      .join('scratches', 'scratch_id', 'id')
-      .where({ user_id: id });
+      .join('scratches', 'scratchId', 'id')
+      .where({ userId: id });
 
     return res.json(likes);
   } catch (err) {
