@@ -52,7 +52,7 @@ exports.searchUsers = async (req, res) => {
   try {
     // get an extra record to check if there are any records left after the current search
     let users = await db('users')
-      .select('id', 'username', 'description', 'profile_image_url')
+      .select('id', 'name', 'username', 'description', 'profile_image_url')
       .where('username', 'ilike', searchPattern)
       .andWhere('username', '>', after)
       .orderBy('username')
@@ -91,7 +91,8 @@ exports.searchUsers = async (req, res) => {
 exports.getUserByUsername = async (req, res) => {
   try {
     const user = await db('users')
-      .select('id', 'username', 'created_at', 'description', 'pinned_id', 'profile_image_url', 'profile_banner_url')
+      .select('id', 'name', 'username', 'created_at', 'description',
+        'pinned_id', 'profile_image_url', 'profile_banner_url')
       .where({ username: req.params.username })
       .first();
     if (!user) {
@@ -130,7 +131,8 @@ exports.getUserByUsername = async (req, res) => {
 exports.getUserById = async (req, res) => {
   try {
     const user = await db('users')
-      .select('id', 'username', 'created_at', 'description', 'pinned_id', 'profile_image_url', 'profile_banner_url')
+      .select('id', 'name', 'username', 'created_at', 'description',
+        'pinned_id', 'profile_image_url', 'profile_banner_url')
       .where({ id: parseInt(req.params.id, 10) })
       .first();
     if (!user) {
@@ -191,6 +193,7 @@ exports.createUser = async (req, res) => {
     const hashedPassword = await bcrypt.hash(req.body.password, 12);
     const [user] = await db('users')
       .insert({
+        name: req.body.username,
         username: req.body.username,
         password: hashedPassword
       })
@@ -269,7 +272,7 @@ exports.getFollowersById = async (req, res) => {
 
   try {
     const followers = await db('follows')
-      .select('id', 'username', 'description', 'profile_image_url')
+      .select('id', 'name', 'username', 'description', 'profile_image_url')
       .join('users', 'follower_id', 'id')
       .where({ followed_id: id });
 
@@ -296,7 +299,7 @@ exports.getFollowedById = async (req, res) => {
 
   try {
     const followed = await db('follows')
-      .select('id', 'username', 'description', 'profile_image_url')
+      .select('id', 'name', 'username', 'description', 'profile_image_url')
       .join('users', 'followed_id', 'id')
       .where({ follower_id: id });
 
