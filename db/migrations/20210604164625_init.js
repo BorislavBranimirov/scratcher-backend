@@ -2,6 +2,7 @@
 exports.up = async (knex) => {
   await knex.schema.createTable('users', (table) => {
     table.increments('id');
+    table.text('name').notNullable();
     table.text('username').unique().notNullable();
     table.text('password').notNullable();
     table.timestamp('created_at').notNullable().defaultTo(knex.fn.now());
