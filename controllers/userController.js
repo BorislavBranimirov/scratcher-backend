@@ -1,6 +1,7 @@
 const db = require('../db/db');
 const bcrypt = require('bcryptjs');
 const userUtils = require('../utils/userUtils');
+const scratchUtils = require('../utils/scratchUtils');
 const errorUtils = require('../utils/errorUtils');
 
 exports.getHomeTimeline = async (req, res) => {
@@ -34,6 +35,13 @@ exports.getHomeTimeline = async (req, res) => {
       scratches.pop();
     } else {
       isFinished = true;
+    }
+
+    for (const scratch of scratches) {
+      Object.assign(
+        scratch,
+        await scratchUtils.getAdditionalScratchData(scratch, res.locals.user.id)
+      );
     }
 
     return res.json({ scratches, isFinished });
@@ -261,6 +269,13 @@ exports.getUserTimeline = async (req, res) => {
       isFinished = true;
     }
 
+    for (const scratch of scratches) {
+      Object.assign(
+        scratch,
+        await scratchUtils.getAdditionalScratchData(scratch, res.locals.user?.id)
+      );
+    }
+
     return res.json({ scratches, isFinished });
   } catch (err) {
     return errorUtils.tryCatchError(res, err, 'An error occurred while getting user\'s timeline');
@@ -412,6 +427,13 @@ exports.getBookmarksByUserId = async (req, res) => {
       .join('scratches', 'scratchId', 'id')
       .where({ userId: id });
 
+    for (const bookmark of bookmarks) {
+      Object.assign(
+        bookmark,
+        await scratchUtils.getAdditionalScratchData(bookmark, res.locals.user.id)
+      );
+    }
+
     return res.json(bookmarks);
   } catch (err) {
     return errorUtils.tryCatchError(res, err, 'An error occurred while searching for bookmarks');
@@ -426,6 +448,13 @@ exports.getLikesByUserId = async (req, res) => {
       .select('scratches.*')
       .join('scratches', 'scratchId', 'id')
       .where({ userId: id });
+
+    for (const like of likes) {
+      Object.assign(
+        like,
+        await scratchUtils.getAdditionalScratchData(like, res.locals.user.id)
+      );
+    }
 
     return res.json(likes);
   } catch (err) {

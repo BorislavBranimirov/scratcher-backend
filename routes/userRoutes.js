@@ -21,7 +21,7 @@ router.route('/:id')
   .delete(verifyAccessToken, userController.deleteUserById);
 
 router.route('/:id/timeline')
-  .get(userController.getUserTimeline);
+  .get(passUserInfo, userController.getUserTimeline);
 
 router.route('/:id/followers')
   .get(verifyAccessToken, userController.getFollowersById);
