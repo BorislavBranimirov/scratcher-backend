@@ -97,6 +97,20 @@ exports.createScratch = async (req, res) => {
 
     if (rescratchedId) {
       rescratchedId = parseInt(rescratchedId, 10);
+      const userRescratches = await db('scratches')
+        .select('*')
+        .where({
+          authorId: res.locals.user.id,
+          rescratchedId: rescratchedId
+        });
+      // a user can share a scratch any number of times
+      // however, a direct share (with no text body or media) can only be posted once
+      for (const userRescratch of userRescratches) {
+        if (!userRescratch.body && !userRescratch.mediaUrl) {
+          return res.status(400).json({ err: 'Scratch has already been direct shared' });
+        }
+      }
+
       const scratchToShare = await db('scratches')
         .select('id')
         .where({ id: rescratchedId })
@@ -105,7 +119,7 @@ exports.createScratch = async (req, res) => {
         return res.status(404).json({ err: 'Scratch being shared not found' });
       }
       if (!scratchToShare.body && !scratchToShare.mediaUrl) {
-        return res.status(400).json({ err: 'Scratch to share needs to have text or media' });
+        return res.status(400).json({ err: 'Scratch being shared needs to have text or media' });
       }
     }
 
