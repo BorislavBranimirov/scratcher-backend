@@ -12,10 +12,10 @@ exports.getHomeTimeline = async (req, res) => {
 
   try {
     // get the ids of each user being followed by the logged-in user
-    const followedUserIds = await db('follows')
+    const followedUserIds = (await db('follows')
       .select('*')
-      .where({ followerId: res.locals.user.id })
-      .pluck('followedId');
+      .where({ followerId: res.locals.user.id }))
+      .map(row => row.followedId);
 
     // get an extra record to check if there are any records left after the current search
     let scratches = await db('scratches')
