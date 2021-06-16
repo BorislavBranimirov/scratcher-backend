@@ -96,6 +96,50 @@ exports.searchUsers = async (req, res) => {
   }
 };
 
+exports.getSuggestedUsers = async (req, res) => {
+  const limit = parseInt(req.query.limit, 10) || 10;
+
+  try {
+    if (!res.locals.user) {
+      const suggestedUsers = await db('users')
+        .select('id', 'name', 'username', 'description', 'profileImageUrl')
+        .limit(limit);
+
+      return res.json(suggestedUsers);
+    }
+
+    // get the ids of each user being followed by the logged-in user
+    const followedUserIds = (await db('follows')
+      .select('*')
+      .where({ followerId: res.locals.user.id }))
+      .map(row => row.followedId);
+
+    // get the users followed by whoever the logged-in user follows
+    let suggestedUsers = await db('follows')
+      .select('id', 'name', 'username', 'description', 'profileImageUrl')
+      .join('users', 'followedId', 'id')
+      .whereIn('followerId', followedUserIds)
+      .whereNotIn('followedId', [res.locals.user.id, ...followedUserIds])
+      .limit(limit);
+
+    // if not enough results were found, suggest additional users
+    if (suggestedUsers.length < limit) {
+      const newLimit = limit - suggestedUsers.length;
+      const currentSuggestedIds = suggestedUsers.map(user => user.id);
+
+      // use the default suggestion search, excluding the logged-in user and any already found users
+      suggestedUsers = suggestedUsers.concat(await db('users')
+        .select('id', 'name', 'username', 'description', 'profileImageUrl')
+        .whereNotIn('id', [res.locals.user.id, ...followedUserIds, ...currentSuggestedIds])
+        .limit(newLimit));
+    }
+
+    return res.json(suggestedUsers);
+  } catch (err) {
+    return errorUtils.tryCatchError(res, err, 'An error occured while collecting suggested users');
+  }
+};
+
 exports.getUserByUsername = async (req, res) => {
   try {
     const user = await db('users')

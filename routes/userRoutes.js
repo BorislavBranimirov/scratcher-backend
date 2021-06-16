@@ -13,6 +13,9 @@ router.route('/timeline')
 router.route('/search')
   .get(passUserInfo, userController.searchUsers);
 
+router.route('/suggested-users')
+  .get(passUserInfo, userController.getSuggestedUsers);
+
 router.route('/username/:username')
   .get(passUserInfo, userController.getUserByUsername);
 
