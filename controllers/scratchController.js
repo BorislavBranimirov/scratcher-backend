@@ -104,6 +104,9 @@ exports.createScratch = async (req, res) => {
       if (!scratchToShare) {
         return res.status(404).json({ err: 'Scratch being shared not found' });
       }
+      if (!scratchToShare.body && !scratchToShare.mediaUrl) {
+        return res.status(400).json({ err: 'Scratch to share needs to have text or media' });
+      }
     }
 
     // TODO: implement mediaUrl in controller
