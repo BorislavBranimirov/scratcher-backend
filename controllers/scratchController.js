@@ -1,4 +1,5 @@
 const db = require('../db/db');
+const scratchUtils = require('../utils/scratchUtils');
 const errorUtils = require('../utils/errorUtils');
 
 exports.getScratchById = async (req, res) => {
@@ -10,6 +11,11 @@ exports.getScratchById = async (req, res) => {
     if (!scratch) {
       return res.status(404).json({ err: 'Scratch not found' });
     }
+
+    Object.assign(
+      scratch,
+      await scratchUtils.getAdditionalScratchData(scratch, res.locals.user?.id)
+    );
 
     return res.json(scratch);
   } catch (err) {
@@ -43,6 +49,13 @@ exports.searchScratches = async (req, res) => {
       scratches.pop();
     } else {
       isFinished = true;
+    }
+
+    for (const scratch of scratches) {
+      Object.assign(
+        scratch,
+        await scratchUtils.getAdditionalScratchData(scratch, res.locals.user?.id)
+      );
     }
 
     return res.json({ scratches, isFinished });
@@ -167,6 +180,10 @@ exports.getScratchConversationById = async (req, res) => {
     if (!obj.scratch) {
       return res.status(404).json({ err: 'Scratch not found' });
     }
+    Object.assign(
+      obj.scratch,
+      await scratchUtils.getAdditionalScratchData(obj.scratch, res.locals.user?.id)
+    );
 
     let parentId = obj.scratch.parentId;
     while (parentId) {
@@ -174,6 +191,12 @@ exports.getScratchConversationById = async (req, res) => {
         .select('*')
         .where({ id: parentId })
         .first();
+
+      Object.assign(
+        parent,
+        await scratchUtils.getAdditionalScratchData(parent, res.locals.user?.id)
+      );
+
       obj.parentChain.unshift(parent);
       parentId = parent.parentId;
     }
@@ -181,6 +204,12 @@ exports.getScratchConversationById = async (req, res) => {
     obj.replies = await db('scratches')
       .select('*')
       .where({ parentId: id });
+    for (const reply of obj.replies) {
+      Object.assign(
+        reply,
+        await scratchUtils.getAdditionalScratchData(reply, res.locals.user?.id)
+      );
+    }
 
     return res.json(obj);
   } catch (err) {

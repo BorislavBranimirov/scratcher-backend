@@ -2,20 +2,20 @@ const express = require('express');
 const router = express.Router();
 
 const scratchController = require('../controllers/scratchController');
-const { verifyAccessToken } = require('../controllers/authController');
+const { verifyAccessToken, passUserInfo } = require('../controllers/authController');
 
 router.route('/')
   .post(verifyAccessToken, scratchController.createScratch);
 
 router.route('/search')
-  .get(scratchController.searchScratches);
+  .get(passUserInfo, scratchController.searchScratches);
 
 router.route('/:id')
-  .get(scratchController.getScratchById)
+  .get(passUserInfo, scratchController.getScratchById)
   .delete(verifyAccessToken, scratchController.deleteScratchById);
 
 router.route('/:id/conversation')
-  .get(scratchController.getScratchConversationById);
+  .get(passUserInfo, scratchController.getScratchConversationById);
 
 router.route('/:id/rescratches')
   .get(verifyAccessToken, scratchController.getUsersRescratchedByScratchId);
