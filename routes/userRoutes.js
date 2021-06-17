@@ -21,7 +21,8 @@ router.route('/username/:username')
 
 router.route('/:id')
   .get(passUserInfo, userController.getUserById)
-  .delete(verifyAccessToken, userController.deleteUserById);
+  .patch(verifyAccessToken, userController.changeUserById)
+  .delete (verifyAccessToken, userController.deleteUserById);
 
 router.route('/:id/timeline')
   .get(passUserInfo, userController.getUserTimeline);

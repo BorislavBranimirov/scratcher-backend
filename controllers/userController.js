@@ -260,6 +260,45 @@ exports.createUser = async (req, res) => {
   }
 };
 
+exports.changeUserById = async (req, res) => {
+  const id = parseInt(req.params.id, 10);
+
+  if (id !== res.locals.user.id) {
+    return res.status(401).json({ err: 'Unauthorized to change user' });
+  }
+
+  if (!req.body.name && !req.body.description) {
+    return res.status(400).json({ err: 'No data provided' });
+  }
+
+  const nameLimit = 50;
+  if (req.body.name && req.body.name.length > nameLimit) {
+    return res.status(400).json({ err: `Name is limited to ${nameLimit} characters` });
+  }
+
+  const descriptionLimit = 160;
+  if (req.body.description && req.body.description.length > descriptionLimit) {
+    return res.status(400).json({ err: `Description is limited to ${descriptionLimit} characters` });
+  }
+
+  try {
+    const [user] = await db('users')
+      .where({ id })
+      .update({
+        name: req.body.name,
+        description: req.body.description
+      })
+      .returning(['id', 'username']);
+
+    return res.json({
+      success: true,
+      ...user
+    });
+  } catch (err) {
+    return errorUtils.tryCatchError(res, err, 'An error occurred while updating user');
+  }
+};
+
 exports.deleteUserById = async (req, res) => {
   const id = parseInt(req.params.id, 10);
 
