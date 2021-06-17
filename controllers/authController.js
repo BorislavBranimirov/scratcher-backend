@@ -107,3 +107,50 @@ exports.login = async (req, res) => {
     return errorUtils.tryCatchError(res, err, 'An error occurred while trying to log in');
   }
 };
+
+exports.refreshToken = async (req, res) => {
+  // refresh token should be supplied in a cookie
+  const refreshToken = req.cookies.refreshToken;
+  if (!refreshToken) {
+    return res.status(401).json({ err: 'No refresh token provided' });
+  }
+
+  try {
+    const payload = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
+
+    const user = await db('users')
+      .select('*')
+      .where({ id: payload.id })
+      .first();
+    if (!user) {
+      return res.status(400).json({ err: 'User doesn\'t exist' });
+    }
+
+    const newAccessToken = jwt.sign({
+      id: user.id,
+      username: user.username
+    }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: process.env.ACCESS_TOKEN_EXPIRES_AFTER });
+
+    const newRefreshToken = jwt.sign({
+      id: user.id,
+      username: user.username
+    }, process.env.REFRESH_TOKEN_SECRET, { expiresIn: process.env.REFRESH_TOKEN_EXPIRES_AFTER });
+
+    res.cookie('refreshToken', newRefreshToken, {
+      maxAge: process.env.REFRESH_TOKEN_EXPIRES_AFTER,
+      path: req.baseUrl + '/refresh-token',
+      httpOnly: true,
+      secure: true
+    });
+
+    return res.json({
+      accessToken: newAccessToken
+    });
+  } catch (err) {
+    // if refresh token is expired send a 401, the user should log in again to receive a new one
+    if (err instanceof jwt.TokenExpiredError) {
+      return res.status(401).json({ err: 'Unauthorized' });
+    }
+    return errorUtils.tryCatchError(res, err, 'An error occurred while refreshing token');
+  }
+};
