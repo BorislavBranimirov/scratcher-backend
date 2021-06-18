@@ -1,8 +1,6 @@
 const db = require('../db/db');
 const bcrypt = require('bcryptjs');
-const userUtils = require('../utils/userUtils');
-const scratchUtils = require('../utils/scratchUtils');
-const errorUtils = require('../utils/errorUtils');
+const { userUtils, scratchUtils, errorUtils } = require('../utils');
 
 exports.getHomeTimeline = async (req, res) => {
   const limit = parseInt(req.query.limit, 10) || 50;
@@ -74,20 +72,10 @@ exports.searchUsers = async (req, res) => {
     }
 
     for (const user of users) {
-      user.isFollowing = false;
-      if (res.locals.user) {
-        const follow = await db('follows')
-          .select('*')
-          .where({
-            followerId: res.locals.user.id,
-            followedId: user.id
-          })
-          .first();
-
-        if (follow) {
-          user.isFollowing = true;
-        }
-      }
+      Object.assign(
+        user,
+        await userUtils.getFollowData(user.id, res.locals.user?.id)
+      );
     }
 
     return res.json({ users, isFinished });
@@ -151,28 +139,10 @@ exports.getUserByUsername = async (req, res) => {
       return res.status(404).json({ err: 'User not found' });
     }
 
-    user.followerCount = (await db('follows')
-      .count('*')
-      .where({ followedId: user.id }))[0].count;
-
-    user.followedCount = (await db('follows')
-      .count('*')
-      .where({ followerId: user.id }))[0].count;
-
-    user.isFollowing = false;
-    if (res.locals.user) {
-      const follow = await db('follows')
-        .select('*')
-        .where({
-          followerId: res.locals.user.id,
-          followedId: user.id
-        })
-        .first();
-
-      if (follow) {
-        user.isFollowing = true;
-      }
-    }
+    Object.assign(
+      user,
+      await userUtils.getFollowData(user.id, res.locals.user?.id)
+    );
 
     return res.json(user);
   } catch (err) {
@@ -191,28 +161,10 @@ exports.getUserById = async (req, res) => {
       return res.status(404).json({ err: 'User not found' });
     }
 
-    user.followerCount = (await db('follows')
-      .count('*')
-      .where({ followedId: user.id }))[0].count;
-
-    user.followedCount = (await db('follows')
-      .count('*')
-      .where({ followerId: user.id }))[0].count;
-
-    user.isFollowing = false;
-    if (res.locals.user) {
-      const follow = await db('follows')
-        .select('*')
-        .where({
-          followerId: res.locals.user.id,
-          followedId: user.id
-        })
-        .first();
-
-      if (follow) {
-        user.isFollowing = true;
-      }
-    }
+    Object.assign(
+      user,
+      await userUtils.getFollowData(user.id, res.locals.user?.id)
+    );
 
     return res.json(user);
   } catch (err) {
@@ -375,15 +327,10 @@ exports.getFollowersById = async (req, res) => {
       .where({ followedId: id });
 
     for (const follower of followers) {
-      const follow = await db('follows')
-        .select('*')
-        .where({
-          followerId: res.locals.user.id,
-          followedId: follower.id
-        })
-        .first();
-
-      follower.isFollowing = (follow) ? true : false;
+      Object.assign(
+        follower,
+        await userUtils.getFollowData(follower.id, res.locals.user.id)
+      );
     }
 
     return res.json(followers);
@@ -402,15 +349,10 @@ exports.getFollowedById = async (req, res) => {
       .where({ followerId: id });
 
     for (const follower of followed) {
-      const follow = await db('follows')
-        .select('*')
-        .where({
-          followerId: res.locals.user.id,
-          followedId: follower.id
-        })
-        .first();
-
-      follower.isFollowing = (follow) ? true : false;
+      Object.assign(
+        follower,
+        await userUtils.getFollowData(follower.id, res.locals.user.id)
+      );
     }
 
     return res.json(followed);

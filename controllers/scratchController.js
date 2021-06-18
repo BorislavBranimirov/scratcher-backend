@@ -1,6 +1,5 @@
 const db = require('../db/db');
-const scratchUtils = require('../utils/scratchUtils');
-const errorUtils = require('../utils/errorUtils');
+const { userUtils, scratchUtils, errorUtils } = require('../utils');
 
 exports.getScratchById = async (req, res) => {
   try {
@@ -244,15 +243,10 @@ exports.getUsersRescratchedByScratchId = async (req, res) => {
       .where({ rescratchedId: id });
 
     for (const user of users) {
-      const follow = await db('follows')
-        .select('*')
-        .where({
-          followerId: res.locals.user.id,
-          followedId: user.id
-        })
-        .first();
-
-      user.isFollowing = (follow) ? true : false;
+      Object.assign(
+        user,
+        await userUtils.getFollowData(user.id, res.locals.user.id)
+      );
     }
 
     return res.json(users);
@@ -406,15 +400,10 @@ exports.getUsersLikedByScratchId = async (req, res) => {
       .where({ scratchId: id });
 
     for (const user of users) {
-      const follow = await db('follows')
-        .select('*')
-        .where({
-          followerId: res.locals.user.id,
-          followedId: user.id
-        })
-        .first();
-
-      user.isFollowing = (follow) ? true : false;
+      Object.assign(
+        user,
+        await userUtils.getFollowData(user.id, res.locals.user.id)
+      );
     }
 
     return res.json(users);
