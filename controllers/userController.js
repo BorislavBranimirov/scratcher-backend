@@ -58,7 +58,8 @@ exports.searchUsers = async (req, res) => {
   try {
     // get an extra record to check if there are any records left after the current search
     let users = await db('users')
-      .select('id', 'name', 'username', 'description', 'profileImageUrl')
+      .select('id', 'name', 'username', 'createdAt', 'description',
+        'pinnedId', 'profileImageUrl', 'profileBannerUrl')
       .where('username', 'ilike', searchPattern)
       .andWhere('username', '>', after)
       .orderBy('username')
@@ -90,8 +91,16 @@ exports.getSuggestedUsers = async (req, res) => {
   try {
     if (!res.locals.user) {
       const suggestedUsers = await db('users')
-        .select('id', 'name', 'username', 'description', 'profileImageUrl')
+        .select('id', 'name', 'username', 'createdAt', 'description',
+          'pinnedId', 'profileImageUrl', 'profileBannerUrl')
         .limit(limit);
+
+      for (const user of suggestedUsers) {
+        Object.assign(
+          user,
+          await userUtils.getFollowData(user.id)
+        );
+      }
 
       return res.json(suggestedUsers);
     }
@@ -104,7 +113,8 @@ exports.getSuggestedUsers = async (req, res) => {
 
     // get the users followed by whoever the logged-in user follows
     let suggestedUsers = await db('follows')
-      .select('id', 'name', 'username', 'description', 'profileImageUrl')
+      .select('id', 'name', 'username', 'createdAt', 'description',
+        'pinnedId', 'profileImageUrl', 'profileBannerUrl')
       .join('users', 'followedId', 'id')
       .whereIn('followerId', followedUserIds)
       .whereNotIn('followedId', [res.locals.user.id, ...followedUserIds])
@@ -117,9 +127,17 @@ exports.getSuggestedUsers = async (req, res) => {
 
       // use the default suggestion search, excluding the logged-in user and any already found users
       suggestedUsers = suggestedUsers.concat(await db('users')
-        .select('id', 'name', 'username', 'description', 'profileImageUrl')
+        .select('id', 'name', 'username', 'createdAt', 'description',
+          'pinnedId', 'profileImageUrl', 'profileBannerUrl')
         .whereNotIn('id', [res.locals.user.id, ...followedUserIds, ...currentSuggestedIds])
         .limit(newLimit));
+    }
+
+    for (const user of suggestedUsers) {
+      Object.assign(
+        user,
+        await userUtils.getFollowData(user.id, res.locals.user.id)
+      );
     }
 
     return res.json(suggestedUsers);
@@ -322,7 +340,8 @@ exports.getFollowersById = async (req, res) => {
 
   try {
     const followers = await db('follows')
-      .select('id', 'name', 'username', 'description', 'profileImageUrl')
+      .select('id', 'name', 'username', 'createdAt', 'description',
+        'pinnedId', 'profileImageUrl', 'profileBannerUrl')
       .join('users', 'followerId', 'id')
       .where({ followedId: id });
 
@@ -344,7 +363,8 @@ exports.getFollowedById = async (req, res) => {
 
   try {
     const followed = await db('follows')
-      .select('id', 'name', 'username', 'description', 'profileImageUrl')
+      .select('id', 'name', 'username', 'createdAt', 'description',
+        'pinnedId', 'profileImageUrl', 'profileBannerUrl')
       .join('users', 'followedId', 'id')
       .where({ followerId: id });
 

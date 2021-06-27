@@ -238,7 +238,8 @@ exports.getUsersRescratchedByScratchId = async (req, res) => {
 
   try {
     const users = await db('scratches')
-      .select('users.id', 'name', 'username', 'description', 'profileImageUrl')
+      .select('users.id', 'name', 'username', 'users.createdAt', 'description',
+        'pinnedId', 'profileImageUrl', 'profileBannerUrl')
       .join('users', 'authorId', 'users.id')
       .where({ rescratchedId: id });
 
@@ -395,7 +396,8 @@ exports.getUsersLikedByScratchId = async (req, res) => {
 
   try {
     const users = await db('likes')
-      .select('id', 'name', 'username', 'description', 'profileImageUrl')
+      .select('id', 'name', 'username', 'createdAt', 'description',
+        'pinnedId', 'profileImageUrl', 'profileBannerUrl')
       .join('users', 'userId', 'id')
       .where({ scratchId: id });
 
