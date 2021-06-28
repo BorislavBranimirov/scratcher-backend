@@ -32,6 +32,10 @@ exports.seed = async (knex) => {
 
   await knex('bookmarks').insert([
     {
+      user_id: 1,
+      scratch_id: 2
+    },
+    {
       user_id: 2,
       scratch_id: 1
     },
