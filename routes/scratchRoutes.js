@@ -22,7 +22,9 @@ router.route('/:id/rescratches')
 
 router.route('/:id/pin')
   .post(verifyAccessToken, scratchController.pinScratch)
-  .delete(verifyAccessToken, scratchController.unpinScratch);
+
+router.route('/:id/unpin')
+  .post(verifyAccessToken, scratchController.unpinScratch);
 
 router.route('/:id/bookmark')
   .post(verifyAccessToken, scratchController.bookmarkScratchById)
