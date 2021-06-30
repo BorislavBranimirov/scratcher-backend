@@ -243,6 +243,7 @@ exports.getUsersRescratchedByScratchId = async (req, res) => {
       .select('users.id', 'name', 'username', 'users.createdAt', 'description',
         'pinnedId', 'profileImageUrl', 'profileBannerUrl')
       .join('users', 'authorId', 'users.id')
+      .groupBy('users.id')
       .where({ rescratchedId: id });
 
     for (const user of users) {
