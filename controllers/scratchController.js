@@ -104,14 +104,16 @@ exports.createScratch = async (req, res) => {
         });
       // a user can share a scratch any number of times
       // however, a direct share (with no text body or media) can only be posted once
-      for (const userRescratch of userRescratches) {
-        if (!userRescratch.body && !userRescratch.mediaUrl) {
-          return res.status(400).json({ err: 'Scratch has already been direct shared' });
+      if (!body && !mediaUrl) {
+        for (const userRescratch of userRescratches) {
+          if (!userRescratch.body && !userRescratch.mediaUrl) {
+            return res.status(400).json({ err: 'Scratch has already been direct shared' });
+          }
         }
       }
 
       const scratchToShare = await db('scratches')
-        .select('id')
+        .select('*')
         .where({ id: rescratchedId })
         .first();
       if (!scratchToShare) {
