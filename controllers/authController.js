@@ -1,8 +1,7 @@
 const db = require('../db/db');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const userUtils = require('../utils/userUtils');
-const errorUtils = require('../utils/errorUtils');
+const { userUtils, errorUtils } = require('../utils');
 
 exports.verifyAccessToken = (req, res, next) => {
   // access token should be supplied in an Authorization header with a Bearer schema
