@@ -12,8 +12,8 @@ exports.passwordPatternTest = (password) => {
 
 exports.getFollowData = async (id, loggedUserId) => {
   const obj = {
-    followerCount: '0',
-    followedCount: '0',
+    followerCount: 0,
+    followedCount: 0,
     isFollowing: false
   };
 

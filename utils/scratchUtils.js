@@ -4,9 +4,9 @@ exports.getAdditionalScratchData = async (scratch, loggedUserId) => {
   const obj = {
     author: null,
     rescratch: null,
-    replyCount: '0',
-    rescratchCount: '0',
-    likeCount: '0',
+    replyCount: 0,
+    rescratchCount: 0,
+    likeCount: 0,
     isRescratched: false,
     isLiked: false,
     isBookmarked: false
