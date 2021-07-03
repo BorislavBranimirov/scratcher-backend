@@ -1,68 +1,6 @@
 const db = require('../db/db');
 const { userUtils, scratchUtils, errorUtils } = require('../utils');
 
-exports.getScratchById = async (req, res) => {
-  try {
-    const scratch = await db('scratches')
-      .select('*')
-      .where({ id: parseInt(req.params.id, 10) })
-      .first();
-    if (!scratch) {
-      return res.status(404).json({ err: 'Scratch not found' });
-    }
-
-    Object.assign(
-      scratch,
-      await scratchUtils.getAdditionalScratchData(scratch, res.locals.user?.id)
-    );
-
-    return res.json(scratch);
-  } catch (err) {
-    return errorUtils.tryCatchError(res, err, 'An error occured while searching for scratch');
-  }
-};
-
-exports.searchScratches = async (req, res) => {
-  const searchPattern = (req.query.query) ? `%${req.query.query}%` : '%';
-  const limit = parseInt(req.query.limit, 10) || 50;
-
-  // scratch id, after which to give results
-  const after = parseInt(req.query.after, 10);
-
-  try {
-    // get an extra record to check if there are any records left after the current search
-    let scratches = await db('scratches')
-      .select('*')
-      .where('body', 'ilike', searchPattern)
-      .modify((builder) => {
-        // if after has been specified, add an additional where clause
-        if (after) {
-          builder.where('id', '<', after)
-        }
-      })
-      .orderBy('id', 'desc')
-      .limit(limit + 1);
-
-    let isFinished = false;
-    if (scratches.length > limit) {
-      scratches.pop();
-    } else {
-      isFinished = true;
-    }
-
-    for (const scratch of scratches) {
-      Object.assign(
-        scratch,
-        await scratchUtils.getAdditionalScratchData(scratch, res.locals.user?.id)
-      );
-    }
-
-    return res.json({ scratches, isFinished });
-  } catch (err) {
-    return errorUtils.tryCatchError(res, err, 'An error occured while searching for scratches');
-  }
-};
-
 exports.createScratch = async (req, res) => {
   let { body, parentId, rescratchedId, mediaUrl } = req.body;
 
@@ -146,6 +84,68 @@ exports.createScratch = async (req, res) => {
     });
   } catch (err) {
     return errorUtils.tryCatchError(res, err, 'An error occured while creating scratch');
+  }
+};
+
+exports.searchScratches = async (req, res) => {
+  const searchPattern = (req.query.query) ? `%${req.query.query}%` : '%';
+  const limit = parseInt(req.query.limit, 10) || 50;
+
+  // scratch id, after which to give results
+  const after = parseInt(req.query.after, 10);
+
+  try {
+    // get an extra record to check if there are any records left after the current search
+    let scratches = await db('scratches')
+      .select('*')
+      .where('body', 'ilike', searchPattern)
+      .modify((builder) => {
+        // if after has been specified, add an additional where clause
+        if (after) {
+          builder.where('id', '<', after)
+        }
+      })
+      .orderBy('id', 'desc')
+      .limit(limit + 1);
+
+    let isFinished = false;
+    if (scratches.length > limit) {
+      scratches.pop();
+    } else {
+      isFinished = true;
+    }
+
+    for (const scratch of scratches) {
+      Object.assign(
+        scratch,
+        await scratchUtils.getAdditionalScratchData(scratch, res.locals.user?.id)
+      );
+    }
+
+    return res.json({ scratches, isFinished });
+  } catch (err) {
+    return errorUtils.tryCatchError(res, err, 'An error occured while searching for scratches');
+  }
+};
+
+exports.getScratchById = async (req, res) => {
+  try {
+    const scratch = await db('scratches')
+      .select('*')
+      .where({ id: parseInt(req.params.id, 10) })
+      .first();
+    if (!scratch) {
+      return res.status(404).json({ err: 'Scratch not found' });
+    }
+
+    Object.assign(
+      scratch,
+      await scratchUtils.getAdditionalScratchData(scratch, res.locals.user?.id)
+    );
+
+    return res.json(scratch);
+  } catch (err) {
+    return errorUtils.tryCatchError(res, err, 'An error occured while searching for scratch');
   }
 };
 

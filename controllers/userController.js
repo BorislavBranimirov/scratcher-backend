@@ -2,6 +2,46 @@ const db = require('../db/db');
 const bcrypt = require('bcryptjs');
 const { userUtils, scratchUtils, errorUtils } = require('../utils');
 
+exports.createUser = async (req, res) => {
+  if (!req.body.username || !req.body.password) {
+    return res.status(400).json({ err: 'No username or password provided' });
+  }
+
+  if (!userUtils.usernamePatternTest(req.body.username)) {
+    return res.status(400).json({ err: 'Invalid username' });
+  }
+
+  if (!userUtils.passwordPatternTest(req.body.password)) {
+    return res.status(400).json({ err: 'Invalid password' });
+  }
+
+  try {
+    const userExists = await db('users')
+      .select('id')
+      .where({ username: req.body.username })
+      .first();
+    if (userExists) {
+      return res.status(400).json({ err: 'User already exists' });
+    }
+
+    const hashedPassword = await bcrypt.hash(req.body.password, 12);
+    const [user] = await db('users')
+      .insert({
+        name: req.body.username,
+        username: req.body.username,
+        password: hashedPassword
+      })
+      .returning(['id', 'username']);
+
+    return res.status(201).json({
+      success: true,
+      ...user
+    });
+  } catch (err) {
+    return errorUtils.tryCatchError(res, err, 'An error occurred while creating user');
+  }
+};
+
 exports.getHomeTimeline = async (req, res) => {
   const limit = parseInt(req.query.limit, 10) || 50;
 
@@ -187,46 +227,6 @@ exports.getUserById = async (req, res) => {
     return res.json(user);
   } catch (err) {
     return errorUtils.tryCatchError(res, err, 'An error occured while searching for user');
-  }
-};
-
-exports.createUser = async (req, res) => {
-  if (!req.body.username || !req.body.password) {
-    return res.status(400).json({ err: 'No username or password provided' });
-  }
-
-  if (!userUtils.usernamePatternTest(req.body.username)) {
-    return res.status(400).json({ err: 'Invalid username' });
-  }
-
-  if (!userUtils.passwordPatternTest(req.body.password)) {
-    return res.status(400).json({ err: 'Invalid password' });
-  }
-
-  try {
-    const userExists = await db('users')
-      .select('id')
-      .where({ username: req.body.username })
-      .first();
-    if (userExists) {
-      return res.status(400).json({ err: 'User already exists' });
-    }
-
-    const hashedPassword = await bcrypt.hash(req.body.password, 12);
-    const [user] = await db('users')
-      .insert({
-        name: req.body.username,
-        username: req.body.username,
-        password: hashedPassword
-      })
-      .returning(['id', 'username']);
-
-    return res.status(201).json({
-      success: true,
-      ...user
-    });
-  } catch (err) {
-    return errorUtils.tryCatchError(res, err, 'An error occurred while creating user');
   }
 };
 
