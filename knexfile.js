@@ -10,7 +10,7 @@ const objToCamel = (obj) => {
   if (typeof obj !== 'object' || obj === null) {
     return obj;
   }
-  
+
   const newObj = {};
   for (const [key, value] of Object.entries(obj)) {
     newObj[key.replace(/_[a-z]/g, (match) => {
@@ -47,6 +47,27 @@ module.exports = {
       }
     },
     debug: true
+  },
+
+  test: {
+    client: 'pg',
+    connection: process.env.PG_TEST_URL,
+    migrations: {
+      directory: './db/migrations'
+    },
+    seeds: {
+      directory: './db/seeds'
+    },
+    wrapIdentifier: (id, wrapper) => {
+      return wrapper(strToSnake(id));
+    },
+    postProcessResponse: (result) => {
+      if (Array.isArray(result)) {
+        return result.map(row => objToCamel(row));
+      } else {
+        return objToCamel(result);
+      }
+    }
   },
 
   production: {

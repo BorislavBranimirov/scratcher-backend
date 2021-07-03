@@ -11,7 +11,9 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 
-app.use(morgan('tiny'));
+if (process.env.NODE_ENV !== 'test') {
+  app.use(morgan('tiny'));
+}
 
 app.use(helmet());
 

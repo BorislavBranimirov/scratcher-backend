@@ -3,13 +3,19 @@
   "version": "1.0.0",
   "description": "A Twitter clone",
   "main": "server.js",
+  "jest": {
+    "setupFilesAfterEnv": [
+      "<rootDir>/setupTests.js"
+    ]
+  },
   "scripts": {
     "start": "node server.js",
     "server": "nodemon server.js",
     "migrate": "knex migrate:latest",
     "rollback": "knex migrate:rollback",
     "seed": "knex seed:run",
-    "reseed": "knex migrate:rollback && knex migrate:latest && knex seed:run"
+    "reseed": "knex migrate:rollback && knex migrate:latest && knex seed:run",
+    "test": "jest --runInBand --verbose"
   },
   "author": "Borislav Branimirov",
   "license": "MIT",
@@ -25,5 +31,9 @@
     "morgan": "^1.10.0",
     "pg": "^8.6.0",
     "uuid": "^8.3.2"
+  },
+  "devDependencies": {
+    "jest": "^27.0.4",
+    "supertest": "^6.1.3"
   }
 }
