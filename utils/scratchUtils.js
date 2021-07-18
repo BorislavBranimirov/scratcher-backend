@@ -21,7 +21,7 @@ exports.getAdditionalScratchData = async (scratch, loggedUserId) => {
   // rescratched scratch
   if (scratch.rescratchedId) {
     obj.rescratch = await db('scratches')
-      .select('id', 'authorId', 'rescratchedId', 'body', 'mediaUrl')
+      .select('*')
       .where({ id: scratch.rescratchedId })
       .first();
 
