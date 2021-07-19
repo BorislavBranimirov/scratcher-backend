@@ -42,6 +42,15 @@ const getRescratch = async (scratch, loggedUserId) => {
 
   rescratch.author = await getAuthor(rescratch.authorId);
 
+  // return counters and statuses only on direct rescratches
+  if (!scratch.body && !scratch.mediaUrl) {
+    Object.assign(
+      rescratch,
+      await getCounters(rescratch.id),
+      await getStatuses(rescratch.id, loggedUserId)
+    );
+  }
+
   return rescratch;
 };
 
