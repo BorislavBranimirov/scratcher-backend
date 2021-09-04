@@ -25,6 +25,10 @@ exports.seed = async (knex) => {
       author_id: 3,
       rescratched_id: 4,
       body: 'Nam congue, risus semper porta volutpat, quam pede lobortis ligula, sit amet eleifend pede libero quis orci. Nullam molestie nibh in lectus.'
+    },
+    {
+      author_id: 1,
+      rescratched_id: 2
     }
   ]);
   await knex('users').where({ id: 1 }).update({ pinned_id: 4 });
