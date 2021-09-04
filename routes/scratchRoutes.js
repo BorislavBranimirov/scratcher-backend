@@ -17,6 +17,9 @@ router.route('/:id')
 router.route('/:id/conversation')
   .get(passUserInfo, scratchController.getScratchConversationById);
 
+router.route('/:id/direct-rescratch')
+  .delete(verifyAccessToken, scratchController.deleteRescratchById);
+
 router.route('/:id/rescratches')
   .get(verifyAccessToken, scratchController.getUsersRescratchedByScratchId);
 

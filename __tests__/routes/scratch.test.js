@@ -203,6 +203,31 @@ describe('Scratch API', () => {
     });
   });
 
+  describe('DELETE /api/scratches/:id/direct-rescratch', () => {
+    const id = 2;
+
+    it('should delete direct rescratch', async () => {
+      const response = await request(app)
+        .delete(`/api/scratches/${id}/direct-rescratch`)
+        .set('Authorization', 'Bearer ' + accessToken)
+        .expect(200);
+    });
+
+    it('should return 401 if no access token is provided', async () => {
+      const response = await request(app)
+        .delete(`/api/scratches/${id}/direct-rescratch`)
+        .expect(401);
+    });
+
+    it('should return 404 if logged-in user does not have a direct rescratch', async () => {
+      const differentId = 1;
+      const response = await request(app)
+        .delete(`/api/scratches/${differentId}/direct-rescratch`)
+        .set('Authorization', 'Bearer ' + accessToken)
+        .expect(404);
+    });
+  });
+
   describe('GET /api/scratches/:id/rescratches', () => {
     const id = 4;
 

@@ -235,6 +235,45 @@ exports.getScratchConversationById = async (req, res) => {
   }
 };
 
+/**
+ * Used to remove direct rescratches of a scratch
+ */
+exports.deleteRescratchById = async (req, res) => {
+  const id = parseInt(req.params.id, 10);
+
+  try {
+    const userRescratches = await db('scratches')
+      .select('*')
+      .where({
+        authorId: res.locals.user.id,
+        rescratchedId: id
+      });
+
+    let idToDelete = null;
+    for (const userRescratch of userRescratches) {
+      if (!userRescratch.body && !userRescratch.mediaUrl) {
+        idToDelete = userRescratch.id;
+      }
+    }
+    if (!idToDelete) {
+      return res.status(404).json({ err: 'Direct rescratch not found' });
+    }
+    
+    const [scratch] = await db('scratches')
+      .where({ id: idToDelete })
+      .del()
+      .returning(['id', 'authorId']);
+
+    return res.json({
+      success: true,
+      ...scratch
+    });
+
+  } catch (err) {
+    return errorUtils.tryCatchError(res, err, 'An error occured while deleting rescratch');
+  }
+};
+
 exports.getUsersRescratchedByScratchId = async (req, res) => {
   const id = parseInt(req.params.id, 10);
 
