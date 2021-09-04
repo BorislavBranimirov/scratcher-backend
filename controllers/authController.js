@@ -154,3 +154,15 @@ exports.refreshToken = async (req, res) => {
     return errorUtils.tryCatchError(res, err, 'An error occurred while refreshing token');
   }
 };
+
+exports.logout = async (req, res) => {
+  res.clearCookie('refreshToken', {
+    path: req.baseUrl + '/refresh-token',
+    httpOnly: true,
+    secure: true
+  });
+  
+  return res.json({
+    success: true
+  });
+};
