@@ -126,7 +126,7 @@ exports.searchUsers = async (req, res) => {
 };
 
 exports.getSuggestedUsers = async (req, res) => {
-  const limit = parseInt(req.query.limit, 10) || 10;
+  const limit = parseInt(req.query.limit, 10) || 3;
 
   try {
     if (!res.locals.user) {
