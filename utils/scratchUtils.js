@@ -9,7 +9,8 @@ exports.getAdditionalScratchData = async (scratch, loggedUserId) => {
     likeCount: 0,
     isRescratched: false,
     isLiked: false,
-    isBookmarked: false
+    isBookmarked: false,
+    rescratchType: 'none'
   };
 
   obj.author = await getAuthor(scratch.authorId);
@@ -23,6 +24,14 @@ exports.getAdditionalScratchData = async (scratch, loggedUserId) => {
     await getCounters(scratch.id),
     await getStatuses(scratch.id, loggedUserId)
   );
+
+  if (obj.rescratch) {
+    if (!scratch.body && !scratch.mediaUrl) {
+      obj.rescratchType = 'direct';
+    } else {
+      obj.rescratchType = 'quote';
+    }
+  }
 
   return obj;
 };
@@ -41,6 +50,7 @@ const getRescratch = async (scratch, loggedUserId) => {
     .first();
 
   rescratch.author = await getAuthor(rescratch.authorId);
+  rescratch.rescratch = null;
 
   // return counters and statuses only on direct rescratches
   if (!scratch.body && !scratch.mediaUrl) {
@@ -50,6 +60,8 @@ const getRescratch = async (scratch, loggedUserId) => {
       await getStatuses(rescratch.id, loggedUserId)
     );
   }
+
+  rescratch.rescratchType = 'none';
 
   return rescratch;
 };
