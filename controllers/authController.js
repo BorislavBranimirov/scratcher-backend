@@ -28,8 +28,9 @@ exports.verifyAccessToken = (req, res, next) => {
 };
 
 /**
- * Exposes user information on res.locals.user if access token can be verified, similarly to verifyAccessToken()
- * Otherwise, continues to the next middleware without setting the users object, instead of returning an error
+ * Exposes user information on res.locals.user if access token can be verified, similarly to verifyAccessToken().
+ * If no access token is provided, continues to the next middleware without setting the users object.
+ * Returns an error on invalid or expired token.
  */
 exports.passUserInfo = (req, res, next) => {
   // access token should be supplied in an Authorization header with a Bearer schema
@@ -51,7 +52,7 @@ exports.passUserInfo = (req, res, next) => {
 
     next();
   } catch (err) {
-    return next();
+    return res.status(401).json({ err: 'Invalid token' });
   }
 };
 
