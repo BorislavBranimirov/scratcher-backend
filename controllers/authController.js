@@ -2,6 +2,7 @@ const db = require('../db/db');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { userUtils, errorUtils } = require('../utils');
+const { createAccessToken, createRefreshToken, addRefreshCookie, clearRefreshCookie } = require('../utils/authUtils');
 
 exports.verifyAccessToken = (req, res, next) => {
   // access token should be supplied in an Authorization header with a Bearer schema
@@ -83,22 +84,11 @@ exports.login = async (req, res) => {
       return res.status(400).json({ err: 'Wrong username or password' });
     }
 
-    const accessToken = jwt.sign({
-      id: user.id,
-      username: user.username
-    }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: process.env.ACCESS_TOKEN_EXPIRES_AFTER });
+    const accessToken = createAccessToken(user);
 
-    const refreshToken = jwt.sign({
-      id: user.id,
-      username: user.username
-    }, process.env.REFRESH_TOKEN_SECRET, { expiresIn: process.env.REFRESH_TOKEN_EXPIRES_AFTER });
+    const refreshToken = createRefreshToken(user);
 
-    res.cookie('refreshToken', refreshToken, {
-      maxAge: process.env.REFRESH_TOKEN_EXPIRES_AFTER,
-      path: req.baseUrl + '/refresh-token',
-      httpOnly: true,
-      secure: true
-    });
+    addRefreshCookie(req, res, refreshToken);
 
     return res.json({
       accessToken: accessToken
@@ -126,22 +116,11 @@ exports.refreshToken = async (req, res) => {
       return res.status(400).json({ err: 'User doesn\'t exist' });
     }
 
-    const newAccessToken = jwt.sign({
-      id: user.id,
-      username: user.username
-    }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: process.env.ACCESS_TOKEN_EXPIRES_AFTER });
+    const newAccessToken = createAccessToken(user);
 
-    const newRefreshToken = jwt.sign({
-      id: user.id,
-      username: user.username
-    }, process.env.REFRESH_TOKEN_SECRET, { expiresIn: process.env.REFRESH_TOKEN_EXPIRES_AFTER });
+    const newRefreshToken = createRefreshToken(user);
 
-    res.cookie('refreshToken', newRefreshToken, {
-      maxAge: process.env.REFRESH_TOKEN_EXPIRES_AFTER,
-      path: req.baseUrl + '/refresh-token',
-      httpOnly: true,
-      secure: true
-    });
+    addRefreshCookie(req, res, newRefreshToken);
 
     return res.json({
       accessToken: newAccessToken
@@ -156,12 +135,8 @@ exports.refreshToken = async (req, res) => {
 };
 
 exports.logout = async (req, res) => {
-  res.clearCookie('refreshToken', {
-    path: req.baseUrl + '/refresh-token',
-    httpOnly: true,
-    secure: true
-  });
-  
+  clearRefreshCookie(req, res);
+
   return res.json({
     success: true
   });
