@@ -40,11 +40,11 @@ global.testScratchProperties = (scratch) => {
   expect(scratch).toHaveProperty('mediaUrl');
   expect(scratch).toHaveProperty('createdAt');
   expect(scratch).toHaveProperty('author');
-  expect(scratch).toHaveProperty('rescratch');
   expect(scratch).toHaveProperty('replyCount');
   expect(scratch).toHaveProperty('rescratchCount');
   expect(scratch).toHaveProperty('likeCount');
   expect(scratch).toHaveProperty('isRescratched');
   expect(scratch).toHaveProperty('isLiked');
   expect(scratch).toHaveProperty('isBookmarked');
+  expect(scratch).toHaveProperty('rescratchType');
 };

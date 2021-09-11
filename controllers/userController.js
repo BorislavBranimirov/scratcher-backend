@@ -82,7 +82,9 @@ exports.getHomeTimeline = async (req, res) => {
       );
     }
 
-    return res.json({ scratches, isFinished });
+    const extraScratches = await scratchUtils.getExtraScratches(scratches, res.locals.user.id);
+
+    return res.json({ scratches, isFinished, extraScratches });
   } catch (err) {
     return errorUtils.tryCatchError(res, err, 'An error occurred while getting home timeline');
   }
@@ -329,7 +331,9 @@ exports.getUserTimeline = async (req, res) => {
       );
     }
 
-    return res.json({ scratches, isFinished });
+    const extraScratches = await scratchUtils.getExtraScratches(scratches, res.locals.user?.id);
+
+    return res.json({ scratches, isFinished, extraScratches });
   } catch (err) {
     return errorUtils.tryCatchError(res, err, 'An error occurred while getting user\'s timeline');
   }
@@ -479,7 +483,9 @@ exports.getBookmarksByUserId = async (req, res) => {
       );
     }
 
-    return res.json(bookmarks);
+    const extraScratches = await scratchUtils.getExtraScratches(bookmarks, res.locals.user.id);
+
+    return res.json({ bookmarks, extraScratches });
   } catch (err) {
     return errorUtils.tryCatchError(res, err, 'An error occurred while searching for bookmarks');
   }
@@ -501,7 +507,9 @@ exports.getLikesByUserId = async (req, res) => {
       );
     }
 
-    return res.json(likes);
+    const extraScratches = await scratchUtils.getExtraScratches(likes, res.locals.user.id);
+
+    return res.json({ likes, extraScratches });
   } catch (err) {
     return errorUtils.tryCatchError(res, err, 'An error occurred while searching for likes');
   }

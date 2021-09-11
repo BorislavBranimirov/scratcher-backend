@@ -88,8 +88,13 @@ describe('Scratch API', () => {
 
       expect(response.body).toHaveProperty('scratches');
       expect(response.body).toHaveProperty('isFinished');
+      expect(response.body).toHaveProperty('extraScratches');
 
       for (const scratch of response.body.scratches) {
+        testScratchProperties(scratch);
+      }
+
+      for (const scratch of Object.values(response.body.extraScratches)) {
         testScratchProperties(scratch);
       }
     });
@@ -102,10 +107,15 @@ describe('Scratch API', () => {
 
       expect(response.body).toHaveProperty('scratches');
       expect(response.body).toHaveProperty('isFinished');
+      expect(response.body).toHaveProperty('extraScratches');
 
       expect(response.body.scratches.length).toBe(limit);
 
       for (const scratch of response.body.scratches) {
+        testScratchProperties(scratch);
+      }
+
+      for (const scratch of Object.values(response.body.extraScratches)) {
         testScratchProperties(scratch);
       }
     });
@@ -135,8 +145,15 @@ describe('Scratch API', () => {
         .get(`/api/scratches/${id}`)
         .expect(200);
 
-      testScratchProperties(response.body);
-      expect(response.body.id).toBe(id);
+      expect(response.body).toHaveProperty('scratch');
+      expect(response.body).toHaveProperty('extraScratches');
+
+      testScratchProperties(response.body.scratch);
+      expect(response.body.scratch.id).toBe(id);
+
+      for (const scratch of Object.values(response.body.extraScratches)) {
+        testScratchProperties(scratch);
+      }
     });
 
     it('should return 404 if scratch does not exist', async () => {
@@ -182,6 +199,7 @@ describe('Scratch API', () => {
       expect(response.body).toHaveProperty('parentChain');
       expect(response.body).toHaveProperty('scratch');
       expect(response.body).toHaveProperty('replies');
+      expect(response.body).toHaveProperty('extraScratches');
 
       for (const scratch of response.body.parentChain) {
         testScratchProperties(scratch);
@@ -191,6 +209,10 @@ describe('Scratch API', () => {
       expect(response.body.scratch.id).toBe(id);
 
       for (const scratch of response.body.replies) {
+        testScratchProperties(scratch);
+      }
+
+      for (const scratch of Object.values(response.body.extraScratches)) {
         testScratchProperties(scratch);
       }
     });

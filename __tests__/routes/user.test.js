@@ -55,8 +55,13 @@ describe('User API', () => {
 
       expect(response.body).toHaveProperty('scratches');
       expect(response.body).toHaveProperty('isFinished');
+      expect(response.body).toHaveProperty('extraScratches');
 
       for (const scratch of response.body.scratches) {
+        testScratchProperties(scratch);
+      }
+
+      for (const scratch of Object.values(response.body.extraScratches)) {
         testScratchProperties(scratch);
       }
     });
@@ -70,10 +75,15 @@ describe('User API', () => {
 
       expect(response.body).toHaveProperty('scratches');
       expect(response.body).toHaveProperty('isFinished');
+      expect(response.body).toHaveProperty('extraScratches');
 
       expect(response.body.scratches.length).toBe(limit);
 
       for (const scratch of response.body.scratches) {
+        testScratchProperties(scratch);
+      }
+
+      for (const scratch of Object.values(response.body.extraScratches)) {
         testScratchProperties(scratch);
       }
     });
@@ -277,8 +287,13 @@ describe('User API', () => {
 
       expect(response.body).toHaveProperty('scratches');
       expect(response.body).toHaveProperty('isFinished');
+      expect(response.body).toHaveProperty('extraScratches');
 
       for (const scratch of response.body.scratches) {
+        testScratchProperties(scratch);
+      }
+
+      for (const scratch of Object.values(response.body.extraScratches)) {
         testScratchProperties(scratch);
       }
     });
@@ -291,10 +306,15 @@ describe('User API', () => {
 
       expect(response.body).toHaveProperty('scratches');
       expect(response.body).toHaveProperty('isFinished');
+      expect(response.body).toHaveProperty('extraScratches');
 
       expect(response.body.scratches.length).toBe(limit);
 
       for (const scratch of response.body.scratches) {
+        testScratchProperties(scratch);
+      }
+
+      for (const scratch of Object.values(response.body.extraScratches)) {
         testScratchProperties(scratch);
       }
     });
@@ -402,7 +422,14 @@ describe('User API', () => {
         .set('Authorization', 'Bearer ' + accessToken)
         .expect(200);
 
-      for (const scratch of response.body) {
+      expect(response.body).toHaveProperty('bookmarks');
+      expect(response.body).toHaveProperty('extraScratches');
+
+      for (const scratch of response.body.bookmarks) {
+        testScratchProperties(scratch);
+      }
+
+      for (const scratch of Object.values(response.body.extraScratches)) {
         testScratchProperties(scratch);
       }
     });
@@ -431,7 +458,14 @@ describe('User API', () => {
         .set('Authorization', 'Bearer ' + accessToken)
         .expect(200);
 
-      for (const scratch of response.body) {
+      expect(response.body).toHaveProperty('likes');
+      expect(response.body).toHaveProperty('extraScratches');
+
+      for (const scratch of response.body.likes) {
+        testScratchProperties(scratch);
+      }
+
+      for (const scratch of Object.values(response.body.extraScratches)) {
         testScratchProperties(scratch);
       }
     });

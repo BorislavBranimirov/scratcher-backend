@@ -1,9 +1,48 @@
 const db = require('../db/db');
 
-exports.getAdditionalScratchData = async (scratch, loggedUserId) => {
+/**
+ * Returns an object with the rescratched posts associated with the given scratches
+ * @param {Object[]} scratches - scratches whose rescratchedId property would be used when fetching posts
+ * @param {number} [loggedUserId] - id of the logged-in user 
+ */
+const getExtraScratches = async (scratches, loggedUserId) => {
+  const extraScratches = {};
+
+  for (const scratch of scratches) {
+    if (!scratch.rescratchedId) {
+      continue;
+    }
+
+    const rescratch = await getRescratch(scratch, loggedUserId);
+    extraScratches[rescratch.id] = rescratch;
+
+    // only fetch posts two levels deep from the original scratch, as further ones won't be usable by the original
+    if (rescratch.rescratchedId) {
+      const nestedRescratch = await getRescratch(rescratch, loggedUserId);
+      extraScratches[nestedRescratch.id] = nestedRescratch;
+    }
+  }
+
+  return extraScratches;
+};
+
+const getRescratch = async (scratch, loggedUserId) => {
+  const rescratch = await db('scratches')
+    .select('*')
+    .where({ id: scratch.rescratchedId })
+    .first();
+
+  Object.assign(
+    rescratch,
+    await getAdditionalScratchData(rescratch, loggedUserId)
+  );
+
+  return rescratch;
+};
+
+const getAdditionalScratchData = async (scratch, loggedUserId) => {
   const obj = {
     author: null,
-    rescratch: null,
     replyCount: 0,
     rescratchCount: 0,
     likeCount: 0,
@@ -15,17 +54,13 @@ exports.getAdditionalScratchData = async (scratch, loggedUserId) => {
 
   obj.author = await getAuthor(scratch.authorId);
 
-  if (scratch.rescratchedId) {
-    obj.rescratch = await getRescratch(scratch, loggedUserId);
-  }
-
   Object.assign(
     obj,
     await getCounters(scratch.id),
     await getStatuses(scratch.id, loggedUserId)
   );
 
-  if (obj.rescratch) {
+  if (scratch.rescratchedId) {
     if (!scratch.body && !scratch.mediaUrl) {
       obj.rescratchType = 'direct';
     } else {
@@ -41,29 +76,6 @@ const getAuthor = async (id) => {
     .select('id', 'name', 'username', 'profileImageUrl')
     .where({ id })
     .first();
-};
-
-const getRescratch = async (scratch, loggedUserId) => {
-  const rescratch = await db('scratches')
-    .select('*')
-    .where({ id: scratch.rescratchedId })
-    .first();
-
-  rescratch.author = await getAuthor(rescratch.authorId);
-  rescratch.rescratch = null;
-
-  // return counters and statuses only on direct rescratches
-  if (!scratch.body && !scratch.mediaUrl) {
-    Object.assign(
-      rescratch,
-      await getCounters(rescratch.id),
-      await getStatuses(rescratch.id, loggedUserId)
-    );
-  }
-
-  rescratch.rescratchType = 'none';
-
-  return rescratch;
 };
 
 const getCounters = async (id) => {
@@ -138,3 +150,5 @@ const getStatuses = async (id, loggedUserId) => {
 
   return statuses;
 };
+
+module.exports = { getExtraScratches, getAdditionalScratchData };

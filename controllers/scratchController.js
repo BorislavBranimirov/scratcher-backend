@@ -122,7 +122,9 @@ exports.searchScratches = async (req, res) => {
       );
     }
 
-    return res.json({ scratches, isFinished });
+    const extraScratches = await scratchUtils.getExtraScratches(scratches, res.locals.user?.id);
+
+    return res.json({ scratches, isFinished, extraScratches });
   } catch (err) {
     return errorUtils.tryCatchError(res, err, 'An error occured while searching for scratches');
   }
@@ -143,7 +145,9 @@ exports.getScratchById = async (req, res) => {
       await scratchUtils.getAdditionalScratchData(scratch, res.locals.user?.id)
     );
 
-    return res.json(scratch);
+    const extraScratches = await scratchUtils.getExtraScratches([scratch], res.locals.user?.id);
+
+    return res.json({ scratch, extraScratches });
   } catch (err) {
     return errorUtils.tryCatchError(res, err, 'An error occured while searching for scratch');
   }
@@ -188,7 +192,8 @@ exports.getScratchConversationById = async (req, res) => {
     const obj = {
       parentChain: [],
       scratch: null,
-      replies: []
+      replies: [],
+      extraScratches: {}
     };
 
     obj.scratch = await db('scratches')
@@ -229,6 +234,11 @@ exports.getScratchConversationById = async (req, res) => {
       );
     }
 
+    obj.extraScratches = await scratchUtils.getExtraScratches(
+      [...obj.parentChain, obj.scratch, ...obj.replies],
+      res.locals.user?.id
+    );
+
     return res.json(obj);
   } catch (err) {
     return errorUtils.tryCatchError(res, err, 'An error occured while searching for scratch conversation');
@@ -258,7 +268,7 @@ exports.deleteRescratchById = async (req, res) => {
     if (!idToDelete) {
       return res.status(404).json({ err: 'Direct rescratch not found' });
     }
-    
+
     const [scratch] = await db('scratches')
       .where({ id: idToDelete })
       .del()
