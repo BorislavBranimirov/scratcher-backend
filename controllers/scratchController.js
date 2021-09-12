@@ -226,7 +226,8 @@ exports.getScratchConversationById = async (req, res) => {
 
     obj.replies = await db('scratches')
       .select('*')
-      .where({ parentId: id });
+      .where({ parentId: id })
+      .orderBy('id', 'desc');
     for (const reply of obj.replies) {
       Object.assign(
         reply,
