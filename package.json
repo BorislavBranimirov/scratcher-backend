@@ -1,7 +1,7 @@
 {
   "name": "scratcher",
   "version": "1.0.0",
-  "description": "A Twitter clone",
+  "description": "The backend for a Twitter clone",
   "main": "server.js",
   "jest": {
     "setupFilesAfterEnv": [
