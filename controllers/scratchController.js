@@ -1,5 +1,6 @@
 const db = require('../db/db');
 const { userUtils, scratchUtils, errorUtils } = require('../utils');
+const cloudinary = require('../cloudinary');
 
 exports.createScratch = async (req, res) => {
   let { body, parentId, rescratchedId, mediaUrl } = req.body;
@@ -62,11 +63,19 @@ exports.createScratch = async (req, res) => {
       }
     }
 
-    // TODO: implement mediaUrl in controller
-    /*
-    if (mediaUrl) {
-    }
-    */
+   if (mediaUrl) {
+     try {
+       await cloudinary.uploader.explicit(mediaUrl, { type: 'upload' });
+     } catch (err) {
+       if (err.http_code === 404) {
+         return res.status(404).json({ err: 'Media file not found' });
+       } else {
+         return res
+           .status(500)
+           .json({ err: 'An error occurred while searching for the media file' });
+       }
+     }
+   }
 
     const [scratch] = await db('scratches')
       .insert({
@@ -166,6 +175,25 @@ exports.deleteScratchById = async (req, res) => {
     }
     if (scratchOld.authorId !== res.locals.user.id) {
       return res.status(401).json({ err: 'Unauthorized to delete scratch' });
+    }
+
+    if (scratchOld.mediaUrl) {
+      let mediaExists = true;
+      try {
+        await cloudinary.uploader.explicit(scratchOld.mediaUrl, {
+          type: 'upload',
+        });
+      } catch (err) {
+        if (err.http_code !== 404) {
+          throw err;
+        } else {
+          mediaExists = false;
+        }
+      }
+
+      if (mediaExists) {
+        await cloudinary.uploader.destroy(scratchOld.mediaUrl);
+      }
     }
 
     const [scratch] = await db('scratches')

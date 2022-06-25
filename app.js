@@ -17,9 +17,10 @@ if (process.env.NODE_ENV !== 'test') {
 
 app.use(helmet());
 
-const { authRouter, userRouter, scratchRouter } = require('./routes');
+const { authRouter, userRouter, scratchRouter, mediaRouter } = require('./routes');
 app.use('/api/auth', authRouter);
 app.use('/api/users', userRouter);
 app.use('/api/scratches', scratchRouter);
+app.use('/api/media', mediaRouter)
 
 module.exports = app;
