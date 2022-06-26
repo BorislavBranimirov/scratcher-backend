@@ -40,6 +40,9 @@ router.route('/:id/follow')
 router.route('/:id/bookmarks')
   .get(verifyAccessToken, userController.getBookmarksByUserId);
 
+router.route('/:id/media')
+  .get(verifyAccessToken, userController.getMediaScratchesByUserId);
+
 router.route('/:id/likes')
   .get(verifyAccessToken, userController.getLikesByUserId);
 

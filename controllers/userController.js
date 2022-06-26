@@ -491,6 +491,50 @@ exports.getBookmarksByUserId = async (req, res) => {
   }
 };
 
+exports.getMediaScratchesByUserId = async (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  const limit = parseInt(req.query.limit, 10) || 50;
+
+  // scratch id, after which to give results
+  const after = parseInt(req.query.after, 10);
+
+  try {
+    // get an extra record to check if there are any records left after the current search
+    let scratches = await db('scratches')
+      .select('*')
+      .where({ authorId: id })
+      .whereNotNull('mediaUrl')
+      .modify((builder) => {
+        // if after has been specified, add an additional where clause
+        if (after) {
+          builder.where('id', '<', after)
+        }
+      })
+      .orderBy('id', 'desc')
+      .limit(limit + 1);
+
+    let isFinished = false;
+    if (scratches.length > limit) {
+      scratches.pop();
+    } else {
+      isFinished = true;
+    }
+
+    for (const scratch of scratches) {
+      Object.assign(
+        scratch,
+        await scratchUtils.getAdditionalScratchData(scratch, res.locals.user?.id)
+      );
+    }
+
+    const extraScratches = await scratchUtils.getExtraScratches(scratches, res.locals.user?.id);
+
+    return res.json({ scratches, isFinished, extraScratches });
+  } catch (err) {
+    return errorUtils.tryCatchError(res, err, 'An error occurred while searching for media scratches');
+  }
+};
+
 exports.getLikesByUserId = async (req, res) => {
   const id = parseInt(req.params.id, 10);
 
