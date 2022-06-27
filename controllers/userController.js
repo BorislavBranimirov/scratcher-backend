@@ -239,17 +239,24 @@ exports.changeUserById = async (req, res) => {
     return res.status(401).json({ err: 'Unauthorized to change user' });
   }
 
-  if (!req.body.name && !req.body.description) {
-    return res.status(400).json({ err: 'No data provided' });
+  if (
+    (req.body.name === undefined || req.body.name === null) ||
+    (req.body.description === undefined || req.body.description === null)
+  ) {
+    return res.status(400).json({ err: 'Data not provided' });
+  }
+
+  if (req.body.name.length === 0) {
+    return res.status(400).json({ err: 'Name cannot be blank' });
   }
 
   const nameLimit = 50;
-  if (req.body.name && req.body.name.length > nameLimit) {
+  if (req.body.name.length > nameLimit) {
     return res.status(400).json({ err: `Name is limited to ${nameLimit} characters` });
   }
 
   const descriptionLimit = 160;
-  if (req.body.description && req.body.description.length > descriptionLimit) {
+  if (req.body.description.length > descriptionLimit) {
     return res.status(400).json({ err: `Description is limited to ${descriptionLimit} characters` });
   }
 
