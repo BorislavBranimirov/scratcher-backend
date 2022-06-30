@@ -24,6 +24,9 @@ router.route('/:id')
   .patch(verifyAccessToken, userController.changeUserById)
   .delete (verifyAccessToken, userController.deleteUserById);
 
+router.route('/:id/change-password')
+  .post(verifyAccessToken, userController.changePassword);
+
 router.route('/:id/timeline')
   .get(passUserInfo, userController.getUserTimeline);
 

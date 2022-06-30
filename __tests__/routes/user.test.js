@@ -277,6 +277,83 @@ describe('User API', () => {
     });
   });
 
+  describe('POST /api/users/:id/change-password', () => {
+    const id = 1;
+    const changePasswordData = {
+      currentPassword: 'F8hTOnzbXRv',
+      password: 'F8hTOnzbXRv0',
+      confirmPassword: 'F8hTOnzbXRv0'
+    };
+
+    it('should update user password', async () => {
+      const response = await request(app)
+        .post(`/api/users/${id}/change-password`)
+        .send(changePasswordData)
+        .set('Authorization', 'Bearer ' + accessToken)
+        .expect(200);
+    });
+
+    it('should return 401 if no access token is provided', async () => {
+      const response = await request(app)
+        .post(`/api/users/${id}/change-password`)
+        .send(changePasswordData)
+        .expect(401);
+    });
+
+    it('should return 401 if id does not match logged-in user', async () => {
+      const differentId = 2;
+      const response = await request(app)
+        .post(`/api/users/${differentId}/change-password`)
+        .send(changePasswordData)
+        .set('Authorization', 'Bearer ' + accessToken)
+        .expect(401);
+    });
+
+    it('should return 400 if no password data is provided', async () => {
+      const response = await request(app)
+        .post(`/api/users/${id}/change-password`)
+        .send({})
+        .set('Authorization', 'Bearer ' + accessToken)
+        .expect(400);
+    });
+
+    it('should return 400 if password and confirmPassword do not match', async () => {
+      const response = await request(app)
+        .post(`/api/users/${id}/change-password`)
+        .send({
+          currentPassword: 'F8hTOnzbXRv',
+          password: 'F8hTOnzbXRv0',
+          confirmPassword: 'F8hTOnzbXRv1'
+        })
+        .set('Authorization', 'Bearer ' + accessToken)
+        .expect(400);
+    });
+
+    it('should return 400 if current password does not match', async () => {
+      const response = await request(app)
+        .post(`/api/users/${id}/change-password`)
+        .send({
+          currentPassword: 'F8hTOnzbXRv1',
+          password: 'F8hTOnzbXRv0',
+          confirmPassword: 'F8hTOnzbXRv0'
+        })
+        .set('Authorization', 'Bearer ' + accessToken)
+        .expect(400);
+    });
+
+    it('should return 400 if current password and new password are the same', async () => {
+      const response = await request(app)
+        .post(`/api/users/${id}/change-password`)
+        .send({
+          currentPassword: 'F8hTOnzbXRv',
+          password: 'F8hTOnzbXRv',
+          confirmPassword: 'F8hTOnzbXRv'
+        })
+        .set('Authorization', 'Bearer ' + accessToken)
+        .expect(400);
+    });
+  });
+
   describe('GET /api/users/:id/timeline', () => {
     const id = 1;
 

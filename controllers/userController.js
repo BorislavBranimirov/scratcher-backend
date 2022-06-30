@@ -303,6 +303,68 @@ exports.deleteUserById = async (req, res) => {
   }
 };
 
+exports.changePassword = async (req, res) => {
+  const id = parseInt(req.params.id, 10);
+
+  if (id !== res.locals.user.id) {
+    return res.status(401).json({ err: 'Unauthorized to change user\'s password' });
+  }
+
+  if (
+    !req.body.currentPassword ||
+    !req.body.password ||
+    !req.body.confirmPassword
+  ) {
+    return res.status(400).json({ err: 'Data not provided' });
+  }
+
+  if (req.body.password !== req.body.confirmPassword) {
+    return res.status(400).json({ err: 'Passwords do not match' });
+  }
+
+  if (!userUtils.passwordPatternTest(req.body.password)) {
+    return res.status(400).json({ err: 'Invalid password' });
+  }
+
+  try {
+    const userOld = await db('users')
+      .select('id', 'password')
+      .where({ id })
+      .first();
+    if (!userOld) {
+      return res.status(404).json({ err: 'User not found' });
+    }
+
+    const isMatch = await bcrypt.compare(req.body.currentPassword, userOld.password);
+    if (!isMatch) {
+      return res.status(400).json({ err: 'Password does not match your current password' });
+    }
+
+    if (req.body.currentPassword === req.body.password) {
+      return res.status(400).json({ err: 'New password cannot be the same as your current one' });
+    }
+
+    const hashedPassword = await bcrypt.hash(req.body.password, 12);
+    const [user] = await db('users')
+      .where({ id })
+      .update({
+        password: hashedPassword,
+      })
+      .returning(['id', 'username']);
+
+    return res.json({
+      success: true,
+      ...user
+    });
+  } catch (err) {
+    return errorUtils.tryCatchError(
+      res,
+      err,
+      'An error occurred while updating user\'s password'
+    );
+  }
+};
+
 exports.getUserTimeline = async (req, res) => {
   const id = parseInt(req.params.id, 10);
   const limit = parseInt(req.query.limit, 10) || 50;
