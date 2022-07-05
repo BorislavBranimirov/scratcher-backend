@@ -410,13 +410,32 @@ exports.getUserTimeline = async (req, res) => {
 
 exports.getFollowersById = async (req, res) => {
   const id = parseInt(req.params.id, 10);
+  const limit = parseInt(req.query.limit, 10) || 50;
+
+  // follower id, after which to give results
+  const after = parseInt(req.query.after, 10);
 
   try {
     const followers = await db('follows')
       .select('id', 'name', 'username', 'createdAt', 'description',
         'pinnedId', 'profileImageUrl', 'profileBannerUrl')
       .join('users', 'followerId', 'id')
-      .where({ followedId: id });
+      .where({ followedId: id })
+      .modify((builder) => {
+        // if after has been specified, add an additional where clause
+        if (after) {
+          builder.where('followerId', '<', after)
+        }
+      })
+      .orderBy('followerId', 'desc')
+      .limit(limit + 1);
+
+    let isFinished = false;
+    if (followers.length > limit) {
+      followers.pop();
+    } else {
+      isFinished = true;
+    }
 
     for (const follower of followers) {
       Object.assign(
@@ -425,7 +444,7 @@ exports.getFollowersById = async (req, res) => {
       );
     }
 
-    return res.json(followers);
+    return res.json({ users: followers, isFinished });
   } catch (err) {
     return errorUtils.tryCatchError(res, err, 'An error occurred while searching for followers');
   }
@@ -433,13 +452,32 @@ exports.getFollowersById = async (req, res) => {
 
 exports.getFollowedById = async (req, res) => {
   const id = parseInt(req.params.id, 10);
+  const limit = parseInt(req.query.limit, 10) || 50;
+
+  // followed id, after which to give results
+  const after = parseInt(req.query.after, 10);
 
   try {
     const followed = await db('follows')
       .select('id', 'name', 'username', 'createdAt', 'description',
         'pinnedId', 'profileImageUrl', 'profileBannerUrl')
       .join('users', 'followedId', 'id')
-      .where({ followerId: id });
+      .where({ followerId: id })
+      .modify((builder) => {
+        // if after has been specified, add an additional where clause
+        if (after) {
+          builder.where('followedId', '<', after)
+        }
+      })
+      .orderBy('followedId', 'desc')
+      .limit(limit + 1);
+
+    let isFinished = false;
+    if (followed.length > limit) {
+      followed.pop();
+    } else {
+      isFinished = true;
+    }
 
     for (const follower of followed) {
       Object.assign(
@@ -448,7 +486,7 @@ exports.getFollowedById = async (req, res) => {
       );
     }
 
-    return res.json(followed);
+    return res.json({ users: followed, isFinished });
   } catch (err) {
     return errorUtils.tryCatchError(res, err, 'An error occurred while searching for followed users');
   }

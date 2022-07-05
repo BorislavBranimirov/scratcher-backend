@@ -417,15 +417,54 @@ describe('User API', () => {
   describe('GET /api/users/:id/followers', () => {
     const id = 1;
 
-    it('should return users following logged-in user', async () => {
+    it('should return users following user', async () => {
       const response = await request(app)
         .get(`/api/users/${id}/followers`)
         .set('Authorization', 'Bearer ' + accessToken)
         .expect(200);
 
-      for (const user of response.body) {
+      expect(response.body).toHaveProperty('users');
+      expect(response.body).toHaveProperty('isFinished');
+
+      for (const user of response.body.users) {
         testUserProperties(user);
       }
+    });
+
+    it('should limit returned followers when specified', async ()=>{
+      const limit = 1;
+      const response = await request(app)
+        .get(`/api/users/${id}/followers?limit=${limit}`)
+        .set('Authorization', 'Bearer ' + accessToken)
+        .expect(200);
+
+      expect(response.body).toHaveProperty('users');
+      expect(response.body).toHaveProperty('isFinished');
+
+      expect(response.body.users.length).toBe(limit);
+
+      for (const user of response.body.users) {
+        testUserProperties(user);
+      }
+    });
+
+    it('should skip over followers when specified', async()=>{
+      const limit = 2;
+      const response = await request(app)
+        .get(`/api/users/${id}/followers?limit=${limit}`)
+        .set('Authorization', 'Bearer ' + accessToken)
+        .expect(200);
+
+      expect(response.body.users.length).toBe(limit);
+
+      const after = response.body.users[0].id;
+
+      const nextResponse = await request(app)
+        .get(`/api/users/${id}/followers?limit=1&after=${after}`)
+        .set('Authorization', 'Bearer ' + accessToken)
+        .expect(200);
+
+      expect(nextResponse.body.users[0]).toEqual(response.body.users[1]);
     });
 
     it('should return 401 if no access token is provided', async () => {
@@ -438,15 +477,54 @@ describe('User API', () => {
   describe('GET /api/users/:id/followed', () => {
     const id = 1;
 
-    it('should return users followed by logged-in user', async () => {
+    it('should return users followed by user', async () => {
       const response = await request(app)
         .get(`/api/users/${id}/followed`)
         .set('Authorization', 'Bearer ' + accessToken)
         .expect(200);
 
-      for (const user of response.body) {
+      expect(response.body).toHaveProperty('users');
+      expect(response.body).toHaveProperty('isFinished');
+  
+      for (const user of response.body.users) {
         testUserProperties(user);
       }
+    });
+
+    it('should limit returned followed when specified', async ()=>{
+      const limit = 1;
+      const response = await request(app)
+        .get(`/api/users/${id}/followed?limit=${limit}`)
+        .set('Authorization', 'Bearer ' + accessToken)
+        .expect(200);
+
+      expect(response.body).toHaveProperty('users');
+      expect(response.body).toHaveProperty('isFinished');
+
+      expect(response.body.users.length).toBe(limit);
+
+      for (const user of response.body.users) {
+        testUserProperties(user);
+      }
+    });
+
+    it('should skip over followed when specified', async()=>{
+      const limit = 2;
+      const response = await request(app)
+        .get(`/api/users/${id}/followed?limit=${limit}`)
+        .set('Authorization', 'Bearer ' + accessToken)
+        .expect(200);
+
+      expect(response.body.users.length).toBe(limit);
+
+      const after = response.body.users[0].id;
+
+      const nextResponse = await request(app)
+        .get(`/api/users/${id}/followed?limit=1&after=${after}`)
+        .set('Authorization', 'Bearer ' + accessToken)
+        .expect(200);
+
+      expect(nextResponse.body.users[0]).toEqual(response.body.users[1]);
     });
 
     it('should return 401 if no access token is provided', async () => {

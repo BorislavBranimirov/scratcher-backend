@@ -19,6 +19,11 @@ exports.seed = async (knex) => {
       username: 'testUser3',
       password: await bcrypt.hash('F8hTOnzbXRv', 12),
       description: 'Sed sagittis. Nam congue, risus semper porta volutpat, quam pede lobortis ligula, sit amet eleifend pede libero quis orci.'
+    },
+    {
+      name: 'test user 4',
+      username: 'testUser4',
+      password: await bcrypt.hash('F8hTOnzbXRv', 12)
     }
   ]);
 };
