@@ -367,7 +367,8 @@ exports.pinScratch = async (req, res) => {
 
     return res.json({
       success: true,
-      ...user
+      userId: user.id,
+      scratchId: user.pinnedId
     });
   } catch (err) {
     return errorUtils.tryCatchError(res, err, 'An error occurred while pinning scratch');
@@ -393,8 +394,8 @@ exports.unpinScratch = async (req, res) => {
 
     return res.json({
       success: true,
-      ...user,
-      pinnedId: id
+      userId: user.id,
+      scratchId: id
     });
   } catch (err) {
     return errorUtils.tryCatchError(res, err, 'An error occurred while unpinning scratch');
