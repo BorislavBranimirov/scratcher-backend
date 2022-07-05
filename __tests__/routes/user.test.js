@@ -577,16 +577,58 @@ describe('User API', () => {
         .set('Authorization', 'Bearer ' + accessToken)
         .expect(200);
 
-      expect(response.body).toHaveProperty('bookmarks');
+      expect(response.body).toHaveProperty('scratches');
+      expect(response.body).toHaveProperty('isFinished');
       expect(response.body).toHaveProperty('extraScratches');
 
-      for (const scratch of response.body.bookmarks) {
+      for (const scratch of response.body.scratches) {
         testScratchProperties(scratch);
       }
 
       for (const scratch of Object.values(response.body.extraScratches)) {
         testScratchProperties(scratch);
       }
+    });
+
+    it('should limit bookmarks when specified', async ()=>{
+      const limit = 1;
+      const response = await request(app)
+        .get(`/api/users/${id}/bookmarks?limit=${limit}`)
+        .set('Authorization', 'Bearer ' + accessToken)
+        .expect(200);
+
+      expect(response.body).toHaveProperty('scratches');
+      expect(response.body).toHaveProperty('isFinished');
+      expect(response.body).toHaveProperty('extraScratches');  
+
+      expect(response.body.scratches.length).toBe(limit);
+
+      for (const scratch of response.body.scratches) {
+        testScratchProperties(scratch);
+      }
+
+      for (const scratch of Object.values(response.body.extraScratches)) {
+        testScratchProperties(scratch);
+      }
+    });
+
+    it('should skip over bookmarks when specified', async () => {
+      const limit = 2;
+      const response = await request(app)
+        .get(`/api/users/${id}/bookmarks?limit=${limit}`)
+        .set('Authorization', 'Bearer ' + accessToken)
+        .expect(200);
+
+      expect(response.body.scratches.length).toBe(limit);
+
+      const after = response.body.scratches[0].id;
+
+      const nextResponse = await request(app)
+        .get(`/api/users/${id}/bookmarks?limit=1&after=${after}`)
+        .set('Authorization', 'Bearer ' + accessToken)
+        .expect(200);
+
+      expect(nextResponse.body.scratches[0]).toEqual(response.body.scratches[1]);
     });
 
     it('should return 401 if no access token is provided', async () => {
@@ -613,16 +655,58 @@ describe('User API', () => {
         .set('Authorization', 'Bearer ' + accessToken)
         .expect(200);
 
-      expect(response.body).toHaveProperty('likes');
+      expect(response.body).toHaveProperty('scratches');
+      expect(response.body).toHaveProperty('isFinished');
       expect(response.body).toHaveProperty('extraScratches');
 
-      for (const scratch of response.body.likes) {
+      for (const scratch of response.body.scratches) {
         testScratchProperties(scratch);
       }
 
       for (const scratch of Object.values(response.body.extraScratches)) {
         testScratchProperties(scratch);
       }
+    });
+
+    it('should limit likes when specified', async () => {
+      const limit = 1;
+      const response = await request(app)
+        .get(`/api/users/${id}/likes?limit=${limit}`)
+        .set('Authorization', 'Bearer ' + accessToken)
+        .expect(200);
+
+      expect(response.body).toHaveProperty('scratches');
+      expect(response.body).toHaveProperty('isFinished');
+      expect(response.body).toHaveProperty('extraScratches');
+
+      expect(response.body.scratches.length).toBe(limit);
+
+      for (const scratch of response.body.scratches) {
+        testScratchProperties(scratch);
+      }
+
+      for (const scratch of Object.values(response.body.extraScratches)) {
+        testScratchProperties(scratch);
+      }
+    });
+
+    it('should skip over likes when specified', async () => {
+      const limit = 2;
+      const response = await request(app)
+        .get(`/api/users/${id}/likes?limit=${limit}`)
+        .set('Authorization', 'Bearer ' + accessToken)
+        .expect(200);
+
+      expect(response.body.scratches.length).toBe(limit);
+
+      const after = response.body.scratches[0].id;
+
+      const nextResponse = await request(app)
+        .get(`/api/users/${id}/likes?limit=1&after=${after}`)
+        .set('Authorization', 'Bearer ' + accessToken)
+        .expect(200);
+
+      expect(nextResponse.body.scratches[0]).toEqual(response.body.scratches[1]);
     });
 
     it('should return 401 if no access token is provided', async () => {

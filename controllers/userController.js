@@ -416,6 +416,7 @@ exports.getFollowersById = async (req, res) => {
   const after = parseInt(req.query.after, 10);
 
   try {
+    // get an extra record to check if there are any records left after the current search
     const followers = await db('follows')
       .select('id', 'name', 'username', 'createdAt', 'description',
         'pinnedId', 'profileImageUrl', 'profileBannerUrl')
@@ -458,6 +459,7 @@ exports.getFollowedById = async (req, res) => {
   const after = parseInt(req.query.after, 10);
 
   try {
+    // get an extra record to check if there are any records left after the current search
     const followed = await db('follows')
       .select('id', 'name', 'username', 'createdAt', 'description',
         'pinnedId', 'profileImageUrl', 'profileBannerUrl')
@@ -572,16 +574,36 @@ exports.unfollowUserById = async (req, res) => {
 
 exports.getBookmarksByUserId = async (req, res) => {
   const id = parseInt(req.params.id, 10);
+  const limit = parseInt(req.query.limit, 10) || 50;
+
+  // scratch id, after which to give results
+  const after = parseInt(req.query.after, 10);
 
   if (id !== res.locals.user.id) {
     return res.status(401).json({ err: 'Unauthorized to view user\'s bookmarks' });
   }
 
   try {
+    // get an extra record to check if there are any records left after the current search
     const bookmarks = await db('bookmarks')
       .select('scratches.*')
       .join('scratches', 'scratchId', 'id')
-      .where({ userId: id });
+      .where({ userId: id })
+      .modify((builder) => {
+        // if after has been specified, add an additional where clause
+        if (after) {
+          builder.where('scratchId', '<', after)
+        }
+      })
+      .orderBy('scratchId', 'desc')
+      .limit(limit + 1);
+
+    let isFinished = false;
+    if (bookmarks.length > limit) {
+      bookmarks.pop();
+    } else {
+      isFinished = true;
+    }
 
     for (const bookmark of bookmarks) {
       Object.assign(
@@ -592,7 +614,7 @@ exports.getBookmarksByUserId = async (req, res) => {
 
     const extraScratches = await scratchUtils.getExtraScratches(bookmarks, res.locals.user.id);
 
-    return res.json({ bookmarks, extraScratches });
+    return res.json({ scratches: bookmarks, isFinished, extraScratches });
   } catch (err) {
     return errorUtils.tryCatchError(res, err, 'An error occurred while searching for bookmarks');
   }
@@ -644,12 +666,32 @@ exports.getMediaScratchesByUserId = async (req, res) => {
 
 exports.getLikesByUserId = async (req, res) => {
   const id = parseInt(req.params.id, 10);
+  const limit = parseInt(req.query.limit, 10) || 50;
+
+  // scratch id, after which to give results
+  const after = parseInt(req.query.after, 10);
 
   try {
+    // get an extra record to check if there are any records left after the current search
     const likes = await db('likes')
       .select('scratches.*')
       .join('scratches', 'scratchId', 'id')
-      .where({ userId: id });
+      .where({ userId: id })
+      .modify((builder) => {
+        // if after has been specified, add an additional where clause
+        if (after) {
+          builder.where('scratchId', '<', after)
+        }
+      })
+      .orderBy('scratchId', 'desc')
+      .limit(limit + 1);
+
+    let isFinished = false;
+    if (likes.length > limit) {
+      likes.pop();
+    } else {
+      isFinished = true;
+    }
 
     for (const like of likes) {
       Object.assign(
@@ -660,7 +702,7 @@ exports.getLikesByUserId = async (req, res) => {
 
     const extraScratches = await scratchUtils.getExtraScratches(likes, res.locals.user.id);
 
-    return res.json({ likes, extraScratches });
+    return res.json({ scratches: likes, isFinished, extraScratches });
   } catch (err) {
     return errorUtils.tryCatchError(res, err, 'An error occurred while searching for likes');
   }

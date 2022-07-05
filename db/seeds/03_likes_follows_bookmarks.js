@@ -10,6 +10,10 @@ exports.seed = async (knex) => {
       scratch_id: 2
     },
     {
+      user_id: 1,
+      scratch_id: 3
+    },
+    {
       user_id: 2,
       scratch_id: 1
     },
@@ -42,6 +46,10 @@ exports.seed = async (knex) => {
     {
       user_id: 1,
       scratch_id: 2
+    },
+    {
+      user_id: 1,
+      scratch_id: 3
     },
     {
       user_id: 2,
