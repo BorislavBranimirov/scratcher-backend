@@ -1,5 +1,6 @@
 const db = require('../db/db');
 const bcrypt = require('bcryptjs');
+const cloudinary = require('../cloudinary');
 const { userUtils, scratchUtils, errorUtils } = require('../utils');
 
 exports.createUser = async (req, res) => {
@@ -289,14 +290,22 @@ exports.deleteUserById = async (req, res) => {
     const [user] = await db('users')
       .where({ id })
       .del()
-      .returning(['id', 'username']);
+      .returning(['id', 'username', 'profileImageUrl', 'profileBannerUrl']);
     if (!user) {
       return res.status(404).json({ err: 'User not found' });
     }
 
+    if (user.profileImageUrl) {
+      await cloudinary.uploader.destroy(user.profileImageUrl);
+    }
+    if (user.profileBannerUrl) {
+      await cloudinary.uploader.destroy(user.profileBannerUrl);
+    }
+
     return res.json({
       success: true,
-      ...user
+      id: user.id,
+      username: user.username
     });
   } catch (err) {
     return errorUtils.tryCatchError(res, err, 'An error occurred while deleting user');
