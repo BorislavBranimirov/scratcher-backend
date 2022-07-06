@@ -178,22 +178,7 @@ exports.deleteScratchById = async (req, res) => {
     }
 
     if (scratchOld.mediaUrl) {
-      let mediaExists = true;
-      try {
-        await cloudinary.uploader.explicit(scratchOld.mediaUrl, {
-          type: 'upload',
-        });
-      } catch (err) {
-        if (err.http_code !== 404) {
-          throw err;
-        } else {
-          mediaExists = false;
-        }
-      }
-
-      if (mediaExists) {
-        await cloudinary.uploader.destroy(scratchOld.mediaUrl);
-      }
+      await cloudinary.uploader.destroy(scratchOld.mediaUrl);
     }
 
     const [scratch] = await db('scratches')
