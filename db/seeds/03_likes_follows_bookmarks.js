@@ -19,6 +19,10 @@ exports.seed = async (knex) => {
     },
     {
       user_id: 3,
+      scratch_id: 1
+    },
+    {
+      user_id: 3,
       scratch_id: 4
     }
   ]);

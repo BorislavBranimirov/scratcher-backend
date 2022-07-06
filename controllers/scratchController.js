@@ -315,14 +315,34 @@ exports.deleteRescratchById = async (req, res) => {
 
 exports.getUsersRescratchedByScratchId = async (req, res) => {
   const id = parseInt(req.params.id, 10);
+  const limit = parseInt(req.query.limit, 10) || 50;
+
+  // user id, after which to give results
+  const after = parseInt(req.query.after, 10);
 
   try {
+    // get an extra record to check if there are any records left after the current search
     const users = await db('scratches')
       .select('users.id', 'name', 'username', 'users.createdAt', 'description',
         'pinnedId', 'profileImageUrl', 'profileBannerUrl')
       .join('users', 'authorId', 'users.id')
       .groupBy('users.id')
-      .where({ rescratchedId: id });
+      .where({ rescratchedId: id })
+      .modify((builder) => {
+        // if after has been specified, add an additional where clause
+        if (after) {
+          builder.where('users.id', '<', after)
+        }
+      })
+      .orderBy('users.id', 'desc')
+      .limit(limit + 1);
+
+    let isFinished = false;
+    if (users.length > limit) {
+      users.pop();
+    } else {
+      isFinished = true;
+    }
 
     for (const user of users) {
       Object.assign(
@@ -331,7 +351,7 @@ exports.getUsersRescratchedByScratchId = async (req, res) => {
       );
     }
 
-    return res.json(users);
+    return res.json({ users, isFinished });
   } catch (err) {
     return errorUtils.tryCatchError(res, err, 'An error occurred while searching for users who shared the scratch');
   }
@@ -475,13 +495,33 @@ exports.unbookmarkScratchById = async (req, res) => {
 
 exports.getUsersLikedByScratchId = async (req, res) => {
   const id = parseInt(req.params.id, 10);
+  const limit = parseInt(req.query.limit, 10) || 50;
+
+  // follower id, after which to give results
+  const after = parseInt(req.query.after, 10);
 
   try {
+    // get an extra record to check if there are any records left after the current search
     const users = await db('likes')
       .select('id', 'name', 'username', 'createdAt', 'description',
         'pinnedId', 'profileImageUrl', 'profileBannerUrl')
       .join('users', 'userId', 'id')
-      .where({ scratchId: id });
+      .where({ scratchId: id })
+      .modify((builder) => {
+        // if after has been specified, add an additional where clause
+        if (after) {
+          builder.where('userId', '<', after)
+        }
+      })
+      .orderBy('userId', 'desc')
+      .limit(limit + 1);
+
+    let isFinished = false;
+    if (users.length > limit) {
+      users.pop();
+    } else {
+      isFinished = true;
+    }
 
     for (const user of users) {
       Object.assign(
@@ -490,7 +530,7 @@ exports.getUsersLikedByScratchId = async (req, res) => {
       );
     }
 
-    return res.json(users);
+    return res.json({ users, isFinished });
   } catch (err) {
     return errorUtils.tryCatchError(res, err, 'An error occurred while searching for users who liked the scratch');
   }
