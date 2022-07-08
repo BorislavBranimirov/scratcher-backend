@@ -1,4 +1,5 @@
 const express = require('express');
+const cors = require('cors');
 const morgan = require('morgan');
 const cookieParser = require('cookie-parser');
 const helmet = require('helmet');
@@ -6,6 +7,10 @@ const helmet = require('helmet');
 const app = express();
 
 require('dotenv').config();
+
+app.use(
+  cors({ origin: process.env.CORS_ORIGIN_URL || 'http://localhost:3000' })
+);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
