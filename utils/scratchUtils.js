@@ -3,7 +3,7 @@ const db = require('../db/db');
 /**
  * Returns an object with the rescratched posts associated with the given scratches
  * @param {Object[]} scratches - scratches whose rescratchedId property would be used when fetching posts
- * @param {number} [loggedUserId] - id of the logged-in user 
+ * @param {number} [loggedUserId] - id of the logged-in user
  */
 const getExtraScratches = async (scratches, loggedUserId) => {
   const extraScratches = {};
@@ -49,7 +49,7 @@ const getAdditionalScratchData = async (scratch, loggedUserId) => {
     isRescratched: false,
     isLiked: false,
     isBookmarked: false,
-    rescratchType: 'none'
+    rescratchType: 'none',
   };
 
   obj.author = await getAuthor(scratch.authorId);
@@ -82,20 +82,20 @@ const getCounters = async (id) => {
   const counters = {
     replyCount: 0,
     rescratchCount: 0,
-    likeCount: 0
+    likeCount: 0,
   };
 
-  counters.replyCount = (await db('scratches')
-    .count('*')
-    .where({ parentId: id }))[0].count;
+  counters.replyCount = (
+    await db('scratches').count('*').where({ parentId: id })
+  )[0].count;
 
-  counters.rescratchCount = (await db('scratches')
-    .count('*')
-    .where({ rescratchedId: id }))[0].count;
+  counters.rescratchCount = (
+    await db('scratches').count('*').where({ rescratchedId: id })
+  )[0].count;
 
-  counters.likeCount = (await db('likes')
-    .count('*')
-    .where({ scratchId: id }))[0].count;
+  counters.likeCount = (
+    await db('likes').count('*').where({ scratchId: id })
+  )[0].count;
 
   return counters;
 };
@@ -104,7 +104,7 @@ const getStatuses = async (id, loggedUserId) => {
   const statuses = {
     isRescratched: false,
     isLiked: false,
-    isBookmarked: false
+    isBookmarked: false,
   };
 
   if (!loggedUserId) {
@@ -112,12 +112,10 @@ const getStatuses = async (id, loggedUserId) => {
   }
 
   // posts by the logged user that have shared the scratch
-  const userRescratches = await db('scratches')
-    .select('*')
-    .where({
-      authorId: loggedUserId,
-      rescratchedId: id
-    });
+  const userRescratches = await db('scratches').select('*').where({
+    authorId: loggedUserId,
+    rescratchedId: id,
+  });
   // status only applies to direct rescratches, with no text body or media
   for (const userRescratch of userRescratches) {
     if (!userRescratch.body && !userRescratch.mediaUrl) {
@@ -130,7 +128,7 @@ const getStatuses = async (id, loggedUserId) => {
     .select('*')
     .where({
       userId: loggedUserId,
-      scratchId: id
+      scratchId: id,
     })
     .first();
   if (userLike) {
@@ -141,7 +139,7 @@ const getStatuses = async (id, loggedUserId) => {
     .select('*')
     .where({
       userId: loggedUserId,
-      scratchId: id
+      scratchId: id,
     })
     .first();
   if (userBookmark) {

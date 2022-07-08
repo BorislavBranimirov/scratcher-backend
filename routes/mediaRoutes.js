@@ -6,11 +6,13 @@ const { verifyAccessToken } = require('../controllers/authController');
 
 router.route('/').post(verifyAccessToken, mediaController.uploadMediaFile);
 
-router.route('/profile-image')
+router
+  .route('/profile-image')
   .post(verifyAccessToken, mediaController.addProfileImage)
   .delete(verifyAccessToken, mediaController.deleteProfileImage);
 
-router.route('/profile-banner')
+router
+  .route('/profile-banner')
   .post(verifyAccessToken, mediaController.addProfileBanner)
   .delete(verifyAccessToken, mediaController.deleteProfileBanner);
 

@@ -30,16 +30,20 @@ exports.createUser = async (req, res) => {
       .insert({
         name: req.body.username,
         username: req.body.username,
-        password: hashedPassword
+        password: hashedPassword,
       })
       .returning(['id', 'username']);
 
     return res.status(201).json({
       success: true,
-      ...user
+      ...user,
     });
   } catch (err) {
-    return errorUtils.tryCatchError(res, err, 'An error occurred while creating user');
+    return errorUtils.tryCatchError(
+      res,
+      err,
+      'An error occurred while creating user'
+    );
   }
 };
 
@@ -51,10 +55,9 @@ exports.getHomeTimeline = async (req, res) => {
 
   try {
     // get the ids of each user being followed by the logged-in user
-    const followedUserIds = (await db('follows')
-      .select('*')
-      .where({ followerId: res.locals.user.id }))
-      .map(row => row.followedId);
+    const followedUserIds = (
+      await db('follows').select('*').where({ followerId: res.locals.user.id })
+    ).map((row) => row.followedId);
 
     // get an extra record to check if there are any records left after the current search
     let scratches = await db('scratches')
@@ -63,7 +66,7 @@ exports.getHomeTimeline = async (req, res) => {
       .modify((builder) => {
         // if after has been specified, add an additional where clause
         if (after) {
-          builder.where('id', '<', after)
+          builder.where('id', '<', after);
         }
       })
       .orderBy('id', 'desc')
@@ -83,26 +86,41 @@ exports.getHomeTimeline = async (req, res) => {
       );
     }
 
-    const extraScratches = await scratchUtils.getExtraScratches(scratches, res.locals.user.id);
+    const extraScratches = await scratchUtils.getExtraScratches(
+      scratches,
+      res.locals.user.id
+    );
 
     return res.json({ scratches, isFinished, extraScratches });
   } catch (err) {
-    return errorUtils.tryCatchError(res, err, 'An error occurred while getting home timeline');
+    return errorUtils.tryCatchError(
+      res,
+      err,
+      'An error occurred while getting home timeline'
+    );
   }
 };
 
 exports.searchUsers = async (req, res) => {
-  const searchPattern = (req.query.query) ? `%${req.query.query}%` : '%';
+  const searchPattern = req.query.query ? `%${req.query.query}%` : '%';
   const limit = parseInt(req.query.limit, 10) || 50;
 
   // username, after which to give results
-  const after = (req.query.after) || '';
+  const after = req.query.after || '';
 
   try {
     // get an extra record to check if there are any records left after the current search
     let users = await db('users')
-      .select('id', 'name', 'username', 'createdAt', 'description',
-        'pinnedId', 'profileImageUrl', 'profileBannerUrl')
+      .select(
+        'id',
+        'name',
+        'username',
+        'createdAt',
+        'description',
+        'pinnedId',
+        'profileImageUrl',
+        'profileBannerUrl'
+      )
       .where('username', 'ilike', searchPattern)
       .andWhere('username', '>', after)
       .orderBy('username')
@@ -124,7 +142,11 @@ exports.searchUsers = async (req, res) => {
 
     return res.json({ users, isFinished });
   } catch (err) {
-    return errorUtils.tryCatchError(res, err, 'An error occured while searching for users');
+    return errorUtils.tryCatchError(
+      res,
+      err,
+      'An error occured while searching for users'
+    );
   }
 };
 
@@ -134,30 +156,42 @@ exports.getSuggestedUsers = async (req, res) => {
   try {
     if (!res.locals.user) {
       const suggestedUsers = await db('users')
-        .select('id', 'name', 'username', 'createdAt', 'description',
-          'pinnedId', 'profileImageUrl', 'profileBannerUrl')
+        .select(
+          'id',
+          'name',
+          'username',
+          'createdAt',
+          'description',
+          'pinnedId',
+          'profileImageUrl',
+          'profileBannerUrl'
+        )
         .limit(limit);
 
       for (const user of suggestedUsers) {
-        Object.assign(
-          user,
-          await userUtils.getFollowData(user.id)
-        );
+        Object.assign(user, await userUtils.getFollowData(user.id));
       }
 
       return res.json(suggestedUsers);
     }
 
     // get the ids of each user being followed by the logged-in user
-    const followedUserIds = (await db('follows')
-      .select('*')
-      .where({ followerId: res.locals.user.id }))
-      .map(row => row.followedId);
+    const followedUserIds = (
+      await db('follows').select('*').where({ followerId: res.locals.user.id })
+    ).map((row) => row.followedId);
 
     // get the users followed by whoever the logged-in user follows
     let suggestedUsers = await db('follows')
-      .select('id', 'name', 'username', 'createdAt', 'description',
-        'pinnedId', 'profileImageUrl', 'profileBannerUrl')
+      .select(
+        'id',
+        'name',
+        'username',
+        'createdAt',
+        'description',
+        'pinnedId',
+        'profileImageUrl',
+        'profileBannerUrl'
+      )
       .join('users', 'followedId', 'id')
       .whereIn('followerId', followedUserIds)
       .whereNotIn('followedId', [res.locals.user.id, ...followedUserIds])
@@ -166,14 +200,28 @@ exports.getSuggestedUsers = async (req, res) => {
     // if not enough results were found, suggest additional users
     if (suggestedUsers.length < limit) {
       const newLimit = limit - suggestedUsers.length;
-      const currentSuggestedIds = suggestedUsers.map(user => user.id);
+      const currentSuggestedIds = suggestedUsers.map((user) => user.id);
 
       // use the default suggestion search, excluding the logged-in user and any already found users
-      suggestedUsers = suggestedUsers.concat(await db('users')
-        .select('id', 'name', 'username', 'createdAt', 'description',
-          'pinnedId', 'profileImageUrl', 'profileBannerUrl')
-        .whereNotIn('id', [res.locals.user.id, ...followedUserIds, ...currentSuggestedIds])
-        .limit(newLimit));
+      suggestedUsers = suggestedUsers.concat(
+        await db('users')
+          .select(
+            'id',
+            'name',
+            'username',
+            'createdAt',
+            'description',
+            'pinnedId',
+            'profileImageUrl',
+            'profileBannerUrl'
+          )
+          .whereNotIn('id', [
+            res.locals.user.id,
+            ...followedUserIds,
+            ...currentSuggestedIds,
+          ])
+          .limit(newLimit)
+      );
     }
 
     for (const user of suggestedUsers) {
@@ -185,15 +233,27 @@ exports.getSuggestedUsers = async (req, res) => {
 
     return res.json(suggestedUsers);
   } catch (err) {
-    return errorUtils.tryCatchError(res, err, 'An error occured while collecting suggested users');
+    return errorUtils.tryCatchError(
+      res,
+      err,
+      'An error occured while collecting suggested users'
+    );
   }
 };
 
 exports.getUserByUsername = async (req, res) => {
   try {
     const user = await db('users')
-      .select('id', 'name', 'username', 'createdAt', 'description',
-        'pinnedId', 'profileImageUrl', 'profileBannerUrl')
+      .select(
+        'id',
+        'name',
+        'username',
+        'createdAt',
+        'description',
+        'pinnedId',
+        'profileImageUrl',
+        'profileBannerUrl'
+      )
       .where({ username: req.params.username })
       .first();
     if (!user) {
@@ -207,15 +267,27 @@ exports.getUserByUsername = async (req, res) => {
 
     return res.json(user);
   } catch (err) {
-    return errorUtils.tryCatchError(res, err, 'An error occured while searching for user');
+    return errorUtils.tryCatchError(
+      res,
+      err,
+      'An error occured while searching for user'
+    );
   }
 };
 
 exports.getUserById = async (req, res) => {
   try {
     const user = await db('users')
-      .select('id', 'name', 'username', 'createdAt', 'description',
-        'pinnedId', 'profileImageUrl', 'profileBannerUrl')
+      .select(
+        'id',
+        'name',
+        'username',
+        'createdAt',
+        'description',
+        'pinnedId',
+        'profileImageUrl',
+        'profileBannerUrl'
+      )
       .where({ id: parseInt(req.params.id, 10) })
       .first();
     if (!user) {
@@ -229,7 +301,11 @@ exports.getUserById = async (req, res) => {
 
     return res.json(user);
   } catch (err) {
-    return errorUtils.tryCatchError(res, err, 'An error occured while searching for user');
+    return errorUtils.tryCatchError(
+      res,
+      err,
+      'An error occured while searching for user'
+    );
   }
 };
 
@@ -241,8 +317,10 @@ exports.changeUserById = async (req, res) => {
   }
 
   if (
-    (req.body.name === undefined || req.body.name === null) ||
-    (req.body.description === undefined || req.body.description === null)
+    req.body.name === undefined ||
+    req.body.name === null ||
+    req.body.description === undefined ||
+    req.body.description === null
   ) {
     return res.status(400).json({ err: 'Data not provided' });
   }
@@ -253,12 +331,16 @@ exports.changeUserById = async (req, res) => {
 
   const nameLimit = 50;
   if (req.body.name.length > nameLimit) {
-    return res.status(400).json({ err: `Name is limited to ${nameLimit} characters` });
+    return res
+      .status(400)
+      .json({ err: `Name is limited to ${nameLimit} characters` });
   }
 
   const descriptionLimit = 160;
   if (req.body.description.length > descriptionLimit) {
-    return res.status(400).json({ err: `Description is limited to ${descriptionLimit} characters` });
+    return res.status(400).json({
+      err: `Description is limited to ${descriptionLimit} characters`,
+    });
   }
 
   try {
@@ -266,16 +348,20 @@ exports.changeUserById = async (req, res) => {
       .where({ id })
       .update({
         name: req.body.name,
-        description: req.body.description
+        description: req.body.description,
       })
       .returning(['id', 'username']);
 
     return res.json({
       success: true,
-      ...user
+      ...user,
     });
   } catch (err) {
-    return errorUtils.tryCatchError(res, err, 'An error occurred while updating user');
+    return errorUtils.tryCatchError(
+      res,
+      err,
+      'An error occurred while updating user'
+    );
   }
 };
 
@@ -305,10 +391,14 @@ exports.deleteUserById = async (req, res) => {
     return res.json({
       success: true,
       id: user.id,
-      username: user.username
+      username: user.username,
     });
   } catch (err) {
-    return errorUtils.tryCatchError(res, err, 'An error occurred while deleting user');
+    return errorUtils.tryCatchError(
+      res,
+      err,
+      'An error occurred while deleting user'
+    );
   }
 };
 
@@ -316,7 +406,9 @@ exports.changePassword = async (req, res) => {
   const id = parseInt(req.params.id, 10);
 
   if (id !== res.locals.user.id) {
-    return res.status(401).json({ err: 'Unauthorized to change user\'s password' });
+    return res
+      .status(401)
+      .json({ err: "Unauthorized to change user's password" });
   }
 
   if (
@@ -344,13 +436,20 @@ exports.changePassword = async (req, res) => {
       return res.status(404).json({ err: 'User not found' });
     }
 
-    const isMatch = await bcrypt.compare(req.body.currentPassword, userOld.password);
+    const isMatch = await bcrypt.compare(
+      req.body.currentPassword,
+      userOld.password
+    );
     if (!isMatch) {
-      return res.status(400).json({ err: 'Password does not match your current password' });
+      return res
+        .status(400)
+        .json({ err: 'Password does not match your current password' });
     }
 
     if (req.body.currentPassword === req.body.password) {
-      return res.status(400).json({ err: 'New password cannot be the same as your current one' });
+      return res
+        .status(400)
+        .json({ err: 'New password cannot be the same as your current one' });
     }
 
     const hashedPassword = await bcrypt.hash(req.body.password, 12);
@@ -363,13 +462,13 @@ exports.changePassword = async (req, res) => {
 
     return res.json({
       success: true,
-      ...user
+      ...user,
     });
   } catch (err) {
     return errorUtils.tryCatchError(
       res,
       err,
-      'An error occurred while updating user\'s password'
+      "An error occurred while updating user's password"
     );
   }
 };
@@ -389,7 +488,7 @@ exports.getUserTimeline = async (req, res) => {
       .modify((builder) => {
         // if after has been specified, add an additional where clause
         if (after) {
-          builder.where('id', '<', after)
+          builder.where('id', '<', after);
         }
       })
       .orderBy('id', 'desc')
@@ -405,15 +504,25 @@ exports.getUserTimeline = async (req, res) => {
     for (const scratch of scratches) {
       Object.assign(
         scratch,
-        await scratchUtils.getAdditionalScratchData(scratch, res.locals.user?.id)
+        await scratchUtils.getAdditionalScratchData(
+          scratch,
+          res.locals.user?.id
+        )
       );
     }
 
-    const extraScratches = await scratchUtils.getExtraScratches(scratches, res.locals.user?.id);
+    const extraScratches = await scratchUtils.getExtraScratches(
+      scratches,
+      res.locals.user?.id
+    );
 
     return res.json({ scratches, isFinished, extraScratches });
   } catch (err) {
-    return errorUtils.tryCatchError(res, err, 'An error occurred while getting user\'s timeline');
+    return errorUtils.tryCatchError(
+      res,
+      err,
+      "An error occurred while getting user's timeline"
+    );
   }
 };
 
@@ -427,14 +536,22 @@ exports.getFollowersById = async (req, res) => {
   try {
     // get an extra record to check if there are any records left after the current search
     const followers = await db('follows')
-      .select('id', 'name', 'username', 'createdAt', 'description',
-        'pinnedId', 'profileImageUrl', 'profileBannerUrl')
+      .select(
+        'id',
+        'name',
+        'username',
+        'createdAt',
+        'description',
+        'pinnedId',
+        'profileImageUrl',
+        'profileBannerUrl'
+      )
       .join('users', 'followerId', 'id')
       .where({ followedId: id })
       .modify((builder) => {
         // if after has been specified, add an additional where clause
         if (after) {
-          builder.where('followerId', '<', after)
+          builder.where('followerId', '<', after);
         }
       })
       .orderBy('followerId', 'desc')
@@ -456,7 +573,11 @@ exports.getFollowersById = async (req, res) => {
 
     return res.json({ users: followers, isFinished });
   } catch (err) {
-    return errorUtils.tryCatchError(res, err, 'An error occurred while searching for followers');
+    return errorUtils.tryCatchError(
+      res,
+      err,
+      'An error occurred while searching for followers'
+    );
   }
 };
 
@@ -470,14 +591,22 @@ exports.getFollowedById = async (req, res) => {
   try {
     // get an extra record to check if there are any records left after the current search
     const followed = await db('follows')
-      .select('id', 'name', 'username', 'createdAt', 'description',
-        'pinnedId', 'profileImageUrl', 'profileBannerUrl')
+      .select(
+        'id',
+        'name',
+        'username',
+        'createdAt',
+        'description',
+        'pinnedId',
+        'profileImageUrl',
+        'profileBannerUrl'
+      )
       .join('users', 'followedId', 'id')
       .where({ followerId: id })
       .modify((builder) => {
         // if after has been specified, add an additional where clause
         if (after) {
-          builder.where('followedId', '<', after)
+          builder.where('followedId', '<', after);
         }
       })
       .orderBy('followedId', 'desc')
@@ -499,7 +628,11 @@ exports.getFollowedById = async (req, res) => {
 
     return res.json({ users: followed, isFinished });
   } catch (err) {
-    return errorUtils.tryCatchError(res, err, 'An error occurred while searching for followed users');
+    return errorUtils.tryCatchError(
+      res,
+      err,
+      'An error occurred while searching for followed users'
+    );
   }
 };
 
@@ -511,10 +644,7 @@ exports.followUserById = async (req, res) => {
   }
 
   try {
-    const userExists = await db('users')
-      .select('id')
-      .where({ id })
-      .first();
+    const userExists = await db('users').select('id').where({ id }).first();
     if (!userExists) {
       return res.status(400).json({ err: 'User does not exist' });
     }
@@ -523,7 +653,7 @@ exports.followUserById = async (req, res) => {
       .select('*')
       .where({
         followerId: res.locals.user.id,
-        followedId: id
+        followedId: id,
       })
       .first();
     if (alreadyFollowed) {
@@ -533,16 +663,20 @@ exports.followUserById = async (req, res) => {
     const [follow] = await db('follows')
       .insert({
         followerId: res.locals.user.id,
-        followedId: id
+        followedId: id,
       })
       .returning(['followerId', 'followedId']);
 
     return res.status(201).json({
       success: true,
-      ...follow
+      ...follow,
     });
   } catch (err) {
-    return errorUtils.tryCatchError(res, err, 'An error occurred while trying to follow user');
+    return errorUtils.tryCatchError(
+      res,
+      err,
+      'An error occurred while trying to follow user'
+    );
   }
 };
 
@@ -554,7 +688,7 @@ exports.unfollowUserById = async (req, res) => {
       .select('*')
       .where({
         followerId: res.locals.user.id,
-        followedId: id
+        followedId: id,
       })
       .first();
     if (!alreadyFollowed) {
@@ -564,7 +698,7 @@ exports.unfollowUserById = async (req, res) => {
     const [unfollow] = await db('follows')
       .where({
         followerId: res.locals.user.id,
-        followedId: id
+        followedId: id,
       })
       .del()
       .returning(['followerId', 'followedId']);
@@ -574,10 +708,14 @@ exports.unfollowUserById = async (req, res) => {
 
     return res.json({
       success: true,
-      ...unfollow
+      ...unfollow,
     });
   } catch (err) {
-    return errorUtils.tryCatchError(res, err, 'An error occurred while trying to unfollow user');
+    return errorUtils.tryCatchError(
+      res,
+      err,
+      'An error occurred while trying to unfollow user'
+    );
   }
 };
 
@@ -589,7 +727,9 @@ exports.getBookmarksByUserId = async (req, res) => {
   const after = parseInt(req.query.after, 10);
 
   if (id !== res.locals.user.id) {
-    return res.status(401).json({ err: 'Unauthorized to view user\'s bookmarks' });
+    return res
+      .status(401)
+      .json({ err: "Unauthorized to view user's bookmarks" });
   }
 
   try {
@@ -601,7 +741,7 @@ exports.getBookmarksByUserId = async (req, res) => {
       .modify((builder) => {
         // if after has been specified, add an additional where clause
         if (after) {
-          builder.where('scratchId', '<', after)
+          builder.where('scratchId', '<', after);
         }
       })
       .orderBy('scratchId', 'desc')
@@ -617,15 +757,25 @@ exports.getBookmarksByUserId = async (req, res) => {
     for (const bookmark of bookmarks) {
       Object.assign(
         bookmark,
-        await scratchUtils.getAdditionalScratchData(bookmark, res.locals.user.id)
+        await scratchUtils.getAdditionalScratchData(
+          bookmark,
+          res.locals.user.id
+        )
       );
     }
 
-    const extraScratches = await scratchUtils.getExtraScratches(bookmarks, res.locals.user.id);
+    const extraScratches = await scratchUtils.getExtraScratches(
+      bookmarks,
+      res.locals.user.id
+    );
 
     return res.json({ scratches: bookmarks, isFinished, extraScratches });
   } catch (err) {
-    return errorUtils.tryCatchError(res, err, 'An error occurred while searching for bookmarks');
+    return errorUtils.tryCatchError(
+      res,
+      err,
+      'An error occurred while searching for bookmarks'
+    );
   }
 };
 
@@ -645,7 +795,7 @@ exports.getMediaScratchesByUserId = async (req, res) => {
       .modify((builder) => {
         // if after has been specified, add an additional where clause
         if (after) {
-          builder.where('id', '<', after)
+          builder.where('id', '<', after);
         }
       })
       .orderBy('id', 'desc')
@@ -661,15 +811,25 @@ exports.getMediaScratchesByUserId = async (req, res) => {
     for (const scratch of scratches) {
       Object.assign(
         scratch,
-        await scratchUtils.getAdditionalScratchData(scratch, res.locals.user?.id)
+        await scratchUtils.getAdditionalScratchData(
+          scratch,
+          res.locals.user?.id
+        )
       );
     }
 
-    const extraScratches = await scratchUtils.getExtraScratches(scratches, res.locals.user?.id);
+    const extraScratches = await scratchUtils.getExtraScratches(
+      scratches,
+      res.locals.user?.id
+    );
 
     return res.json({ scratches, isFinished, extraScratches });
   } catch (err) {
-    return errorUtils.tryCatchError(res, err, 'An error occurred while searching for media scratches');
+    return errorUtils.tryCatchError(
+      res,
+      err,
+      'An error occurred while searching for media scratches'
+    );
   }
 };
 
@@ -689,7 +849,7 @@ exports.getLikesByUserId = async (req, res) => {
       .modify((builder) => {
         // if after has been specified, add an additional where clause
         if (after) {
-          builder.where('scratchId', '<', after)
+          builder.where('scratchId', '<', after);
         }
       })
       .orderBy('scratchId', 'desc')
@@ -709,10 +869,17 @@ exports.getLikesByUserId = async (req, res) => {
       );
     }
 
-    const extraScratches = await scratchUtils.getExtraScratches(likes, res.locals.user.id);
+    const extraScratches = await scratchUtils.getExtraScratches(
+      likes,
+      res.locals.user.id
+    );
 
     return res.json({ scratches: likes, isFinished, extraScratches });
   } catch (err) {
-    return errorUtils.tryCatchError(res, err, 'An error occurred while searching for likes');
+    return errorUtils.tryCatchError(
+      res,
+      err,
+      'An error occurred while searching for likes'
+    );
   }
 };

@@ -2,12 +2,19 @@ const db = require('../db/db');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { userUtils, errorUtils } = require('../utils');
-const { createAccessToken, createRefreshToken, addRefreshCookie, clearRefreshCookie } = require('../utils/authUtils');
+const {
+  createAccessToken,
+  createRefreshToken,
+  addRefreshCookie,
+  clearRefreshCookie,
+} = require('../utils/authUtils');
 
 exports.verifyAccessToken = (req, res, next) => {
   // access token should be supplied in an Authorization header with a Bearer schema
-  if (req.headers['authorization'] === undefined ||
-    req.headers['authorization'].split(' ')[0] !== 'Bearer') {
+  if (
+    req.headers['authorization'] === undefined ||
+    req.headers['authorization'].split(' ')[0] !== 'Bearer'
+  ) {
     return res.status(401).json({ err: 'Unauthorized' });
   }
 
@@ -19,7 +26,7 @@ exports.verifyAccessToken = (req, res, next) => {
     // attach the user info to the response object for use in further middleware
     res.locals.user = {
       id: payload.id,
-      username: payload.username
+      username: payload.username,
     };
 
     next();
@@ -35,8 +42,10 @@ exports.verifyAccessToken = (req, res, next) => {
  */
 exports.passUserInfo = (req, res, next) => {
   // access token should be supplied in an Authorization header with a Bearer schema
-  if (req.headers['authorization'] === undefined ||
-    req.headers['authorization'].split(' ')[0] !== 'Bearer') {
+  if (
+    req.headers['authorization'] === undefined ||
+    req.headers['authorization'].split(' ')[0] !== 'Bearer'
+  ) {
     return next();
   }
 
@@ -48,7 +57,7 @@ exports.passUserInfo = (req, res, next) => {
     // attach the user info to the response object for use in further middleware
     res.locals.user = {
       id: payload.id,
-      username: payload.username
+      username: payload.username,
     };
 
     next();
@@ -91,10 +100,14 @@ exports.login = async (req, res) => {
     addRefreshCookie(req, res, refreshToken);
 
     return res.json({
-      accessToken: accessToken
+      accessToken: accessToken,
     });
   } catch (err) {
-    return errorUtils.tryCatchError(res, err, 'An error occurred while trying to log in');
+    return errorUtils.tryCatchError(
+      res,
+      err,
+      'An error occurred while trying to log in'
+    );
   }
 };
 
@@ -113,7 +126,7 @@ exports.refreshToken = async (req, res) => {
       .where({ id: payload.id })
       .first();
     if (!user) {
-      return res.status(400).json({ err: 'User doesn\'t exist' });
+      return res.status(400).json({ err: "User doesn't exist" });
     }
 
     const newAccessToken = createAccessToken(user);
@@ -123,14 +136,18 @@ exports.refreshToken = async (req, res) => {
     addRefreshCookie(req, res, newRefreshToken);
 
     return res.json({
-      accessToken: newAccessToken
+      accessToken: newAccessToken,
     });
   } catch (err) {
     // if refresh token is expired send a 401, the user should log in again to receive a new one
     if (err instanceof jwt.TokenExpiredError) {
       return res.status(401).json({ err: 'Unauthorized' });
     }
-    return errorUtils.tryCatchError(res, err, 'An error occurred while refreshing token');
+    return errorUtils.tryCatchError(
+      res,
+      err,
+      'An error occurred while refreshing token'
+    );
   }
 };
 
@@ -138,6 +155,6 @@ exports.logout = async (req, res) => {
   clearRefreshCookie(req, res);
 
   return res.json({
-    success: true
+    success: true,
   });
 };

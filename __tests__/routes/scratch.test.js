@@ -4,18 +4,20 @@ const app = require('../../app');
 describe('Scratch API', () => {
   let accessToken = null;
   it('should acquire access token', async () => {
-    accessToken = (await request(app)
-      .post('/api/auth/login')
-      .send({
-        username: 'testUser1',
-        password: 'F8hTOnzbXRv',
-      })
-      .expect(200)).body.accessToken;
+    accessToken = (
+      await request(app)
+        .post('/api/auth/login')
+        .send({
+          username: 'testUser1',
+          password: 'F8hTOnzbXRv',
+        })
+        .expect(200)
+    ).body.accessToken;
   });
 
   describe('POST /api/scratches', () => {
     const newScratch = {
-      body: 'new scratch'
+      body: 'new scratch',
     };
 
     it('should create scratch', async () => {
@@ -29,7 +31,7 @@ describe('Scratch API', () => {
     it('should create reply scratch', async () => {
       const replyRescratch = {
         body: 'new reply rescratch',
-        parentId: 1
+        parentId: 1,
       };
 
       const response = await request(app)
@@ -41,7 +43,7 @@ describe('Scratch API', () => {
 
     it('should create direct rescratch', async () => {
       const directRescratch = {
-        rescratchedId: 1
+        rescratchedId: 1,
       };
 
       const response = await request(app)
@@ -54,7 +56,7 @@ describe('Scratch API', () => {
     it('should create quote rescratch', async () => {
       const quoteRescratch = {
         body: 'new quote rescratch',
-        rescratchedId: 1
+        rescratchedId: 1,
       };
 
       const response = await request(app)
@@ -134,7 +136,9 @@ describe('Scratch API', () => {
         .get(`/api/scratches/search?limit=1&after=${after}`)
         .expect(200);
 
-      expect(nextResponse.body.scratches[0]).toEqual(response.body.scratches[1]);
+      expect(nextResponse.body.scratches[0]).toEqual(
+        response.body.scratches[1]
+      );
     });
   });
 
@@ -158,9 +162,7 @@ describe('Scratch API', () => {
 
     it('should return 404 if scratch does not exist', async () => {
       const id = 1e9;
-      const response = await request(app)
-        .get(`/api/scratch/${id}`)
-        .expect(404);
+      const response = await request(app).get(`/api/scratch/${id}`).expect(404);
     });
   });
 
@@ -261,13 +263,13 @@ describe('Scratch API', () => {
 
       expect(response.body).toHaveProperty('users');
       expect(response.body).toHaveProperty('isFinished');
-  
+
       for (const user of response.body.users) {
         testUserProperties(user);
       }
     });
 
-    it('should limit users who shared scratch when specified', async ()=>{
+    it('should limit users who shared scratch when specified', async () => {
       const limit = 1;
       const response = await request(app)
         .get(`/api/scratches/${id}/rescratches?limit=${limit}`)
@@ -284,7 +286,7 @@ describe('Scratch API', () => {
       }
     });
 
-    it('should skip over users who shared scratch when specified', async()=>{
+    it('should skip over users who shared scratch when specified', async () => {
       const limit = 2;
       const response = await request(app)
         .get(`/api/scratches/${id}/rescratches?limit=${limit}`)
@@ -412,14 +414,14 @@ describe('Scratch API', () => {
         .expect(200);
 
       expect(response.body).toHaveProperty('users');
-      expect(response.body).toHaveProperty('isFinished');  
+      expect(response.body).toHaveProperty('isFinished');
 
       for (const user of response.body.users) {
         testUserProperties(user);
       }
     });
 
-    it('should limit users who liked scratch when specified', async ()=>{
+    it('should limit users who liked scratch when specified', async () => {
       const limit = 1;
       const response = await request(app)
         .get(`/api/scratches/${id}/likes?limit=${limit}`)
@@ -436,7 +438,7 @@ describe('Scratch API', () => {
       }
     });
 
-    it('should skip over users who liked scratch when specified', async()=>{
+    it('should skip over users who liked scratch when specified', async () => {
       const limit = 2;
       const response = await request(app)
         .get(`/api/scratches/${id}/likes?limit=${limit}`)

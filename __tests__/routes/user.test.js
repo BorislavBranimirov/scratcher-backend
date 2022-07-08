@@ -4,19 +4,21 @@ const app = require('../../app');
 describe('User API', () => {
   let accessToken = null;
   it('should acquire access token', async () => {
-    accessToken = (await request(app)
-      .post('/api/auth/login')
-      .send({
-        username: 'testUser1',
-        password: 'F8hTOnzbXRv',
-      })
-      .expect(200)).body.accessToken;
+    accessToken = (
+      await request(app)
+        .post('/api/auth/login')
+        .send({
+          username: 'testUser1',
+          password: 'F8hTOnzbXRv',
+        })
+        .expect(200)
+    ).body.accessToken;
   });
 
   describe('POST /api/users', () => {
     const newUser = {
       username: 'NewUser1',
-      password: 'NewPassword1'
+      password: 'NewPassword1',
     };
 
     it('should create user', async () => {
@@ -47,7 +49,7 @@ describe('User API', () => {
   });
 
   describe('GET /api/users/timeline', () => {
-    it('should return logged-in user\'s timeline scratches', async () => {
+    it("should return logged-in user's timeline scratches", async () => {
       const response = await request(app)
         .get('/api/users/timeline')
         .set('Authorization', 'Bearer ' + accessToken)
@@ -104,7 +106,9 @@ describe('User API', () => {
         .set('Authorization', 'Bearer ' + accessToken)
         .expect(200);
 
-      expect(nextResponse.body.scratches[0]).toEqual(response.body.scratches[1]);
+      expect(nextResponse.body.scratches[0]).toEqual(
+        response.body.scratches[1]
+      );
     });
 
     it('should return 401 if no access token is provided', async () => {
@@ -116,9 +120,7 @@ describe('User API', () => {
 
   describe('GET /api/users/search', () => {
     it('should return users', async () => {
-      const response = await request(app)
-        .get('/api/users/search')
-        .expect(200);
+      const response = await request(app).get('/api/users/search').expect(200);
 
       expect(response.body).toHaveProperty('users');
       expect(response.body).toHaveProperty('isFinished');
@@ -196,9 +198,7 @@ describe('User API', () => {
   describe('GET /api/users/:id', () => {
     it('should return user', async () => {
       const id = 1;
-      const response = await request(app)
-        .get(`/api/users/${id}`)
-        .expect(200);
+      const response = await request(app).get(`/api/users/${id}`).expect(200);
 
       testUserProperties(response.body);
       expect(response.body.id).toBe(id);
@@ -206,9 +206,7 @@ describe('User API', () => {
 
     it('should return 404 if user does not exist', async () => {
       const id = 1e9;
-      const response = await request(app)
-        .get(`/api/users/${id}`)
-        .expect(404);
+      const response = await request(app).get(`/api/users/${id}`).expect(404);
     });
   });
 
@@ -216,7 +214,7 @@ describe('User API', () => {
     const id = 1;
     const updatedUserData = {
       name: 'updated user name',
-      description: 'updated user description'
+      description: 'updated user description',
     };
 
     it('should update user', async () => {
@@ -282,7 +280,7 @@ describe('User API', () => {
     const changePasswordData = {
       currentPassword: 'F8hTOnzbXRv',
       password: 'F8hTOnzbXRv0',
-      confirmPassword: 'F8hTOnzbXRv0'
+      confirmPassword: 'F8hTOnzbXRv0',
     };
 
     it('should update user password', async () => {
@@ -323,7 +321,7 @@ describe('User API', () => {
         .send({
           currentPassword: 'F8hTOnzbXRv',
           password: 'F8hTOnzbXRv0',
-          confirmPassword: 'F8hTOnzbXRv1'
+          confirmPassword: 'F8hTOnzbXRv1',
         })
         .set('Authorization', 'Bearer ' + accessToken)
         .expect(400);
@@ -335,7 +333,7 @@ describe('User API', () => {
         .send({
           currentPassword: 'F8hTOnzbXRv1',
           password: 'F8hTOnzbXRv0',
-          confirmPassword: 'F8hTOnzbXRv0'
+          confirmPassword: 'F8hTOnzbXRv0',
         })
         .set('Authorization', 'Bearer ' + accessToken)
         .expect(400);
@@ -347,7 +345,7 @@ describe('User API', () => {
         .send({
           currentPassword: 'F8hTOnzbXRv',
           password: 'F8hTOnzbXRv',
-          confirmPassword: 'F8hTOnzbXRv'
+          confirmPassword: 'F8hTOnzbXRv',
         })
         .set('Authorization', 'Bearer ' + accessToken)
         .expect(400);
@@ -357,7 +355,7 @@ describe('User API', () => {
   describe('GET /api/users/:id/timeline', () => {
     const id = 1;
 
-    it('should return user\'s timeline scratches', async () => {
+    it("should return user's timeline scratches", async () => {
       const response = await request(app)
         .get(`/api/users/${id}/timeline`)
         .expect(200);
@@ -410,7 +408,9 @@ describe('User API', () => {
         .get(`/api/users/${id}/timeline?limit=1&after=${after}`)
         .expect(200);
 
-      expect(nextResponse.body.scratches[0]).toEqual(response.body.scratches[1]);
+      expect(nextResponse.body.scratches[0]).toEqual(
+        response.body.scratches[1]
+      );
     });
   });
 
@@ -431,7 +431,7 @@ describe('User API', () => {
       }
     });
 
-    it('should limit returned followers when specified', async ()=>{
+    it('should limit returned followers when specified', async () => {
       const limit = 1;
       const response = await request(app)
         .get(`/api/users/${id}/followers?limit=${limit}`)
@@ -448,7 +448,7 @@ describe('User API', () => {
       }
     });
 
-    it('should skip over followers when specified', async()=>{
+    it('should skip over followers when specified', async () => {
       const limit = 2;
       const response = await request(app)
         .get(`/api/users/${id}/followers?limit=${limit}`)
@@ -485,13 +485,13 @@ describe('User API', () => {
 
       expect(response.body).toHaveProperty('users');
       expect(response.body).toHaveProperty('isFinished');
-  
+
       for (const user of response.body.users) {
         testUserProperties(user);
       }
     });
 
-    it('should limit returned followed when specified', async ()=>{
+    it('should limit returned followed when specified', async () => {
       const limit = 1;
       const response = await request(app)
         .get(`/api/users/${id}/followed?limit=${limit}`)
@@ -508,7 +508,7 @@ describe('User API', () => {
       }
     });
 
-    it('should skip over followed when specified', async()=>{
+    it('should skip over followed when specified', async () => {
       const limit = 2;
       const response = await request(app)
         .get(`/api/users/${id}/followed?limit=${limit}`)
@@ -571,7 +571,7 @@ describe('User API', () => {
   describe('GET /api/users/:id/bookmarks', () => {
     const id = 1;
 
-    it('should return user\'s bookmarks', async () => {
+    it("should return user's bookmarks", async () => {
       const response = await request(app)
         .get(`/api/users/${id}/bookmarks`)
         .set('Authorization', 'Bearer ' + accessToken)
@@ -590,7 +590,7 @@ describe('User API', () => {
       }
     });
 
-    it('should limit bookmarks when specified', async ()=>{
+    it('should limit bookmarks when specified', async () => {
       const limit = 1;
       const response = await request(app)
         .get(`/api/users/${id}/bookmarks?limit=${limit}`)
@@ -599,7 +599,7 @@ describe('User API', () => {
 
       expect(response.body).toHaveProperty('scratches');
       expect(response.body).toHaveProperty('isFinished');
-      expect(response.body).toHaveProperty('extraScratches');  
+      expect(response.body).toHaveProperty('extraScratches');
 
       expect(response.body.scratches.length).toBe(limit);
 
@@ -628,7 +628,9 @@ describe('User API', () => {
         .set('Authorization', 'Bearer ' + accessToken)
         .expect(200);
 
-      expect(nextResponse.body.scratches[0]).toEqual(response.body.scratches[1]);
+      expect(nextResponse.body.scratches[0]).toEqual(
+        response.body.scratches[1]
+      );
     });
 
     it('should return 401 if no access token is provided', async () => {
@@ -649,7 +651,7 @@ describe('User API', () => {
   describe('GET /api/users/:id/likes', () => {
     const id = 1;
 
-    it('should return user\'s likes', async () => {
+    it("should return user's likes", async () => {
       const response = await request(app)
         .get(`/api/users/${id}/likes`)
         .set('Authorization', 'Bearer ' + accessToken)
@@ -706,7 +708,9 @@ describe('User API', () => {
         .set('Authorization', 'Bearer ' + accessToken)
         .expect(200);
 
-      expect(nextResponse.body.scratches[0]).toEqual(response.body.scratches[1]);
+      expect(nextResponse.body.scratches[0]).toEqual(
+        response.body.scratches[1]
+      );
     });
 
     it('should return 401 if no access token is provided', async () => {

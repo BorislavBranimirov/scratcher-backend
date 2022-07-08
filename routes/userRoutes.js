@@ -2,51 +2,62 @@ const express = require('express');
 const router = express.Router();
 
 const userController = require('../controllers/userController');
-const { verifyAccessToken, passUserInfo } = require('../controllers/authController');
+const {
+  verifyAccessToken,
+  passUserInfo,
+} = require('../controllers/authController');
 
-router.route('/')
-  .post(userController.createUser);
+router.route('/').post(userController.createUser);
 
-router.route('/timeline')
+router
+  .route('/timeline')
   .get(verifyAccessToken, userController.getHomeTimeline);
 
-router.route('/search')
-  .get(passUserInfo, userController.searchUsers);
+router.route('/search').get(passUserInfo, userController.searchUsers);
 
-router.route('/suggested-users')
+router
+  .route('/suggested-users')
   .get(passUserInfo, userController.getSuggestedUsers);
 
-router.route('/username/:username')
+router
+  .route('/username/:username')
   .get(passUserInfo, userController.getUserByUsername);
 
-router.route('/:id')
+router
+  .route('/:id')
   .get(passUserInfo, userController.getUserById)
   .patch(verifyAccessToken, userController.changeUserById)
-  .delete (verifyAccessToken, userController.deleteUserById);
+  .delete(verifyAccessToken, userController.deleteUserById);
 
-router.route('/:id/change-password')
+router
+  .route('/:id/change-password')
   .post(verifyAccessToken, userController.changePassword);
 
-router.route('/:id/timeline')
-  .get(passUserInfo, userController.getUserTimeline);
+router.route('/:id/timeline').get(passUserInfo, userController.getUserTimeline);
 
-router.route('/:id/followers')
+router
+  .route('/:id/followers')
   .get(verifyAccessToken, userController.getFollowersById);
 
-router.route('/:id/followed')
+router
+  .route('/:id/followed')
   .get(verifyAccessToken, userController.getFollowedById);
 
-router.route('/:id/follow')
+router
+  .route('/:id/follow')
   .post(verifyAccessToken, userController.followUserById)
   .delete(verifyAccessToken, userController.unfollowUserById);
 
-router.route('/:id/bookmarks')
+router
+  .route('/:id/bookmarks')
   .get(verifyAccessToken, userController.getBookmarksByUserId);
 
-router.route('/:id/media')
+router
+  .route('/:id/media')
   .get(verifyAccessToken, userController.getMediaScratchesByUserId);
 
-router.route('/:id/likes')
+router
+  .route('/:id/likes')
   .get(verifyAccessToken, userController.getLikesByUserId);
 
 module.exports = router;

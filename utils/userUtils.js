@@ -14,23 +14,23 @@ exports.getFollowData = async (id, loggedUserId) => {
   const obj = {
     followerCount: 0,
     followedCount: 0,
-    isFollowing: false
+    isFollowing: false,
   };
 
-  obj.followerCount = (await db('follows')
-    .count('*')
-    .where({ followedId: id }))[0].count;
+  obj.followerCount = (
+    await db('follows').count('*').where({ followedId: id })
+  )[0].count;
 
-  obj.followedCount = (await db('follows')
-    .count('*')
-    .where({ followerId: id }))[0].count;
+  obj.followedCount = (
+    await db('follows').count('*').where({ followerId: id })
+  )[0].count;
 
   if (loggedUserId) {
     const follow = await db('follows')
       .select('*')
       .where({
         followerId: loggedUserId,
-        followedId: id
+        followedId: id,
       })
       .first();
 

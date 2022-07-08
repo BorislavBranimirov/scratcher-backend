@@ -13,7 +13,9 @@ exports.createScratch = async (req, res) => {
       body = body.trim();
       const scratchLimit = 280;
       if (body.length > scratchLimit) {
-        return res.status(400).json({ err: `Scratch body is limited to ${scratchLimit} characters` });
+        return res.status(400).json({
+          err: `Scratch body is limited to ${scratchLimit} characters`,
+        });
       }
     }
 
@@ -35,18 +37,18 @@ exports.createScratch = async (req, res) => {
 
     if (rescratchedId) {
       rescratchedId = parseInt(rescratchedId, 10);
-      const userRescratches = await db('scratches')
-        .select('*')
-        .where({
-          authorId: res.locals.user.id,
-          rescratchedId: rescratchedId
-        });
+      const userRescratches = await db('scratches').select('*').where({
+        authorId: res.locals.user.id,
+        rescratchedId: rescratchedId,
+      });
       // a user can share a scratch any number of times
       // however, a direct share (with no text body or media) can only be posted once
       if (!body && !mediaUrl) {
         for (const userRescratch of userRescratches) {
           if (!userRescratch.body && !userRescratch.mediaUrl) {
-            return res.status(400).json({ err: 'Scratch has already been direct shared' });
+            return res
+              .status(400)
+              .json({ err: 'Scratch has already been direct shared' });
           }
         }
       }
@@ -59,23 +61,25 @@ exports.createScratch = async (req, res) => {
         return res.status(404).json({ err: 'Scratch being shared not found' });
       }
       if (!scratchToShare.body && !scratchToShare.mediaUrl) {
-        return res.status(400).json({ err: 'Scratch being shared needs to have text or media' });
+        return res
+          .status(400)
+          .json({ err: 'Scratch being shared needs to have text or media' });
       }
     }
 
-   if (mediaUrl) {
-     try {
-       await cloudinary.uploader.explicit(mediaUrl, { type: 'upload' });
-     } catch (err) {
-       if (err.http_code === 404) {
-         return res.status(404).json({ err: 'Media file not found' });
-       } else {
-         return res
-           .status(500)
-           .json({ err: 'An error occurred while searching for the media file' });
-       }
-     }
-   }
+    if (mediaUrl) {
+      try {
+        await cloudinary.uploader.explicit(mediaUrl, { type: 'upload' });
+      } catch (err) {
+        if (err.http_code === 404) {
+          return res.status(404).json({ err: 'Media file not found' });
+        } else {
+          return res.status(500).json({
+            err: 'An error occurred while searching for the media file',
+          });
+        }
+      }
+    }
 
     const [scratch] = await db('scratches')
       .insert({
@@ -83,21 +87,25 @@ exports.createScratch = async (req, res) => {
         rescratchedId,
         parentId,
         body,
-        mediaUrl
+        mediaUrl,
       })
       .returning(['id', 'authorId']);
 
     return res.status(201).json({
       success: true,
-      ...scratch
+      ...scratch,
     });
   } catch (err) {
-    return errorUtils.tryCatchError(res, err, 'An error occured while creating scratch');
+    return errorUtils.tryCatchError(
+      res,
+      err,
+      'An error occured while creating scratch'
+    );
   }
 };
 
 exports.searchScratches = async (req, res) => {
-  const searchPattern = (req.query.query) ? `%${req.query.query}%` : '%';
+  const searchPattern = req.query.query ? `%${req.query.query}%` : '%';
   const limit = parseInt(req.query.limit, 10) || 50;
 
   // scratch id, after which to give results
@@ -111,7 +119,7 @@ exports.searchScratches = async (req, res) => {
       .modify((builder) => {
         // if after has been specified, add an additional where clause
         if (after) {
-          builder.where('id', '<', after)
+          builder.where('id', '<', after);
         }
       })
       .orderBy('id', 'desc')
@@ -127,15 +135,25 @@ exports.searchScratches = async (req, res) => {
     for (const scratch of scratches) {
       Object.assign(
         scratch,
-        await scratchUtils.getAdditionalScratchData(scratch, res.locals.user?.id)
+        await scratchUtils.getAdditionalScratchData(
+          scratch,
+          res.locals.user?.id
+        )
       );
     }
 
-    const extraScratches = await scratchUtils.getExtraScratches(scratches, res.locals.user?.id);
+    const extraScratches = await scratchUtils.getExtraScratches(
+      scratches,
+      res.locals.user?.id
+    );
 
     return res.json({ scratches, isFinished, extraScratches });
   } catch (err) {
-    return errorUtils.tryCatchError(res, err, 'An error occured while searching for scratches');
+    return errorUtils.tryCatchError(
+      res,
+      err,
+      'An error occured while searching for scratches'
+    );
   }
 };
 
@@ -154,11 +172,18 @@ exports.getScratchById = async (req, res) => {
       await scratchUtils.getAdditionalScratchData(scratch, res.locals.user?.id)
     );
 
-    const extraScratches = await scratchUtils.getExtraScratches([scratch], res.locals.user?.id);
+    const extraScratches = await scratchUtils.getExtraScratches(
+      [scratch],
+      res.locals.user?.id
+    );
 
     return res.json({ scratch, extraScratches });
   } catch (err) {
-    return errorUtils.tryCatchError(res, err, 'An error occured while searching for scratch');
+    return errorUtils.tryCatchError(
+      res,
+      err,
+      'An error occured while searching for scratch'
+    );
   }
 };
 
@@ -166,10 +191,7 @@ exports.deleteScratchById = async (req, res) => {
   const id = parseInt(req.params.id, 10);
 
   try {
-    const scratchOld = await db('scratches')
-      .select('*')
-      .where({ id })
-      .first();
+    const scratchOld = await db('scratches').select('*').where({ id }).first();
     if (!scratchOld) {
       return res.status(404).json({ err: 'Scratch not found' });
     }
@@ -188,10 +210,14 @@ exports.deleteScratchById = async (req, res) => {
 
     return res.json({
       success: true,
-      ...scratch
+      ...scratch,
     });
   } catch (err) {
-    return errorUtils.tryCatchError(res, err, 'An error occured while deleting scratch');
+    return errorUtils.tryCatchError(
+      res,
+      err,
+      'An error occured while deleting scratch'
+    );
   }
 };
 
@@ -206,19 +232,19 @@ exports.getScratchConversationById = async (req, res) => {
       parentChain: [],
       scratch: null,
       replies: [],
-      extraScratches: {}
+      extraScratches: {},
     };
 
-    obj.scratch = await db('scratches')
-      .select('*')
-      .where({ id })
-      .first();
+    obj.scratch = await db('scratches').select('*').where({ id }).first();
     if (!obj.scratch) {
       return res.status(404).json({ err: 'Scratch not found' });
     }
     Object.assign(
       obj.scratch,
-      await scratchUtils.getAdditionalScratchData(obj.scratch, res.locals.user?.id)
+      await scratchUtils.getAdditionalScratchData(
+        obj.scratch,
+        res.locals.user?.id
+      )
     );
 
     let parentId = obj.scratch.parentId;
@@ -255,7 +281,11 @@ exports.getScratchConversationById = async (req, res) => {
 
     return res.json(obj);
   } catch (err) {
-    return errorUtils.tryCatchError(res, err, 'An error occured while searching for scratch conversation');
+    return errorUtils.tryCatchError(
+      res,
+      err,
+      'An error occured while searching for scratch conversation'
+    );
   }
 };
 
@@ -266,12 +296,10 @@ exports.deleteRescratchById = async (req, res) => {
   const id = parseInt(req.params.id, 10);
 
   try {
-    const userRescratches = await db('scratches')
-      .select('*')
-      .where({
-        authorId: res.locals.user.id,
-        rescratchedId: id
-      });
+    const userRescratches = await db('scratches').select('*').where({
+      authorId: res.locals.user.id,
+      rescratchedId: id,
+    });
 
     let idToDelete = null;
     for (const userRescratch of userRescratches) {
@@ -290,11 +318,14 @@ exports.deleteRescratchById = async (req, res) => {
 
     return res.json({
       success: true,
-      ...scratch
+      ...scratch,
     });
-
   } catch (err) {
-    return errorUtils.tryCatchError(res, err, 'An error occured while deleting rescratch');
+    return errorUtils.tryCatchError(
+      res,
+      err,
+      'An error occured while deleting rescratch'
+    );
   }
 };
 
@@ -308,15 +339,23 @@ exports.getUsersRescratchedByScratchId = async (req, res) => {
   try {
     // get an extra record to check if there are any records left after the current search
     const users = await db('scratches')
-      .select('users.id', 'name', 'username', 'users.createdAt', 'description',
-        'pinnedId', 'profileImageUrl', 'profileBannerUrl')
+      .select(
+        'users.id',
+        'name',
+        'username',
+        'users.createdAt',
+        'description',
+        'pinnedId',
+        'profileImageUrl',
+        'profileBannerUrl'
+      )
       .join('users', 'authorId', 'users.id')
       .groupBy('users.id')
       .where({ rescratchedId: id })
       .modify((builder) => {
         // if after has been specified, add an additional where clause
         if (after) {
-          builder.where('users.id', '<', after)
+          builder.where('users.id', '<', after);
         }
       })
       .orderBy('users.id', 'desc')
@@ -338,7 +377,11 @@ exports.getUsersRescratchedByScratchId = async (req, res) => {
 
     return res.json({ users, isFinished });
   } catch (err) {
-    return errorUtils.tryCatchError(res, err, 'An error occurred while searching for users who shared the scratch');
+    return errorUtils.tryCatchError(
+      res,
+      err,
+      'An error occurred while searching for users who shared the scratch'
+    );
   }
 };
 
@@ -354,7 +397,9 @@ exports.pinScratch = async (req, res) => {
       return res.status(404).json({ err: 'Scratch not found' });
     }
     if (scratch.authorId !== res.locals.user.id) {
-      return res.status(401).json({ err: 'Scratches can only be pinned by their author' });
+      return res
+        .status(401)
+        .json({ err: 'Scratches can only be pinned by their author' });
     }
 
     const userOld = await db('users')
@@ -373,10 +418,14 @@ exports.pinScratch = async (req, res) => {
     return res.json({
       success: true,
       userId: user.id,
-      scratchId: user.pinnedId
+      scratchId: user.pinnedId,
     });
   } catch (err) {
-    return errorUtils.tryCatchError(res, err, 'An error occurred while pinning scratch');
+    return errorUtils.tryCatchError(
+      res,
+      err,
+      'An error occurred while pinning scratch'
+    );
   }
 };
 
@@ -400,10 +449,14 @@ exports.unpinScratch = async (req, res) => {
     return res.json({
       success: true,
       userId: user.id,
-      scratchId: id
+      scratchId: id,
     });
   } catch (err) {
-    return errorUtils.tryCatchError(res, err, 'An error occurred while unpinning scratch');
+    return errorUtils.tryCatchError(
+      res,
+      err,
+      'An error occurred while unpinning scratch'
+    );
   }
 };
 
@@ -411,10 +464,7 @@ exports.bookmarkScratchById = async (req, res) => {
   const id = parseInt(req.params.id, 10);
 
   try {
-    const scratch = await db('scratches')
-      .select('id')
-      .where({ id })
-      .first();
+    const scratch = await db('scratches').select('id').where({ id }).first();
     if (!scratch) {
       return res.status(404).json({ err: 'Scratch not found' });
     }
@@ -423,7 +473,7 @@ exports.bookmarkScratchById = async (req, res) => {
       .select('*')
       .where({
         userId: res.locals.user.id,
-        scratchId: id
+        scratchId: id,
       })
       .first();
     if (isBookmarked) {
@@ -433,16 +483,20 @@ exports.bookmarkScratchById = async (req, res) => {
     const [bookmark] = await db('bookmarks')
       .insert({
         userId: res.locals.user.id,
-        scratchId: id
+        scratchId: id,
       })
       .returning(['userId', 'scratchId']);
 
     return res.status(201).json({
       success: true,
-      ...bookmark
+      ...bookmark,
     });
   } catch (err) {
-    return errorUtils.tryCatchError(res, err, 'An error occurred while bookmarking scratch');
+    return errorUtils.tryCatchError(
+      res,
+      err,
+      'An error occurred while bookmarking scratch'
+    );
   }
 };
 
@@ -454,7 +508,7 @@ exports.unbookmarkScratchById = async (req, res) => {
       .select('*')
       .where({
         userId: res.locals.user.id,
-        scratchId: id
+        scratchId: id,
       })
       .first();
     if (!isBookmarked) {
@@ -464,17 +518,21 @@ exports.unbookmarkScratchById = async (req, res) => {
     const [bookmark] = await db('bookmarks')
       .where({
         userId: res.locals.user.id,
-        scratchId: id
+        scratchId: id,
       })
       .del()
       .returning(['userId', 'scratchId']);
 
     return res.json({
       success: true,
-      ...bookmark
+      ...bookmark,
     });
   } catch (err) {
-    return errorUtils.tryCatchError(res, err, 'An error occurred while unbookmarking scratch');
+    return errorUtils.tryCatchError(
+      res,
+      err,
+      'An error occurred while unbookmarking scratch'
+    );
   }
 };
 
@@ -488,14 +546,22 @@ exports.getUsersLikedByScratchId = async (req, res) => {
   try {
     // get an extra record to check if there are any records left after the current search
     const users = await db('likes')
-      .select('id', 'name', 'username', 'createdAt', 'description',
-        'pinnedId', 'profileImageUrl', 'profileBannerUrl')
+      .select(
+        'id',
+        'name',
+        'username',
+        'createdAt',
+        'description',
+        'pinnedId',
+        'profileImageUrl',
+        'profileBannerUrl'
+      )
       .join('users', 'userId', 'id')
       .where({ scratchId: id })
       .modify((builder) => {
         // if after has been specified, add an additional where clause
         if (after) {
-          builder.where('userId', '<', after)
+          builder.where('userId', '<', after);
         }
       })
       .orderBy('userId', 'desc')
@@ -517,7 +583,11 @@ exports.getUsersLikedByScratchId = async (req, res) => {
 
     return res.json({ users, isFinished });
   } catch (err) {
-    return errorUtils.tryCatchError(res, err, 'An error occurred while searching for users who liked the scratch');
+    return errorUtils.tryCatchError(
+      res,
+      err,
+      'An error occurred while searching for users who liked the scratch'
+    );
   }
 };
 
@@ -525,10 +595,7 @@ exports.likeScratchById = async (req, res) => {
   const id = parseInt(req.params.id, 10);
 
   try {
-    const scratch = await db('scratches')
-      .select('id')
-      .where({ id })
-      .first();
+    const scratch = await db('scratches').select('id').where({ id }).first();
     if (!scratch) {
       return res.status(404).json({ err: 'Scratch not found' });
     }
@@ -537,7 +604,7 @@ exports.likeScratchById = async (req, res) => {
       .select('*')
       .where({
         userId: res.locals.user.id,
-        scratchId: id
+        scratchId: id,
       })
       .first();
     if (isLiked) {
@@ -547,16 +614,20 @@ exports.likeScratchById = async (req, res) => {
     const [like] = await db('likes')
       .insert({
         userId: res.locals.user.id,
-        scratchId: id
+        scratchId: id,
       })
       .returning(['userId', 'scratchId']);
 
     return res.status(201).json({
       success: true,
-      ...like
+      ...like,
     });
   } catch (err) {
-    return errorUtils.tryCatchError(res, err, 'An error occurred while liking scratch');
+    return errorUtils.tryCatchError(
+      res,
+      err,
+      'An error occurred while liking scratch'
+    );
   }
 };
 
@@ -568,7 +639,7 @@ exports.unlikeScratchById = async (req, res) => {
       .select('*')
       .where({
         userId: res.locals.user.id,
-        scratchId: id
+        scratchId: id,
       })
       .first();
     if (!isLiked) {
@@ -578,16 +649,20 @@ exports.unlikeScratchById = async (req, res) => {
     const [like] = await db('likes')
       .where({
         userId: res.locals.user.id,
-        scratchId: id
+        scratchId: id,
       })
       .del()
       .returning(['userId', 'scratchId']);
 
     return res.json({
       success: true,
-      ...like
+      ...like,
     });
   } catch (err) {
-    return errorUtils.tryCatchError(res, err, 'An error occurred while unliking scratch');
+    return errorUtils.tryCatchError(
+      res,
+      err,
+      'An error occurred while unliking scratch'
+    );
   }
 };
