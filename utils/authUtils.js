@@ -28,6 +28,7 @@ exports.addRefreshCookie = (req, res, refreshToken) => {
     path: req.baseUrl + '/refresh-token',
     httpOnly: true,
     secure: true,
+    sameSite: 'None',
   });
 };
 
@@ -36,5 +37,6 @@ exports.clearRefreshCookie = (req, res) => {
     path: req.baseUrl + '/refresh-token',
     httpOnly: true,
     secure: true,
+    sameSite: 'None',
   });
 };
