@@ -16,7 +16,7 @@ Run the project by following these instructions:
   - CLOUDINARY_API_SECRET - The API secret from your Cloudinary account
   - PORT - Port to run the server on. If not specified, defaults to `8000`.
   - NODE_ENV - Specifies the server's environment, any of `development`, `test` or `production`. If not specified, defaults to `development`.
-  - CORS_ORIGIN_URL - Origin URL that the server should allow requests from. If not specified, defaults to `http://localhost:3000`.
+  - CORS_ORIGIN - Origin URL(s) that the server should allow requests from. Can be specified as a comma-seperated list for multiple URLs, e.g. `CORS_ORIGIN=https://yourdomain.com, https://anotherdomain.com`. If not specified, defaults to `http://localhost:3000`.
   - ACCESS_TOKEN_SECRET - The secret that will be used to generate access tokens for authentication
   - ACCESS_TOKEN_EXPIRES_AFTER - Miliseconds until access token expires or another time span notation from [vercel/ms](https://github.com/vercel/ms), such as 15m or 1d
   - REFRESH_TOKEN_SECRET - The secret that will be used to generate refresh tokens for authentication
