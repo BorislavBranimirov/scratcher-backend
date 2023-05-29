@@ -35,6 +35,7 @@ Run the project by following these instructions:
   - To connect to a PostgreSQL database in production:
     - DATABASE_URL - The PostgreSQL URL to connect to
 
+- Create an upload-preset on your cloudinary account called `scratcher_preset`, specifying the upload folder and any other settings you want
 - Run the suitable npm script (migrations should be run before starting the server)
 
 ```sh
