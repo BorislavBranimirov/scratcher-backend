@@ -540,7 +540,7 @@ exports.getUsersLikedByScratchId = async (req, res) => {
   const id = parseInt(req.params.id, 10);
   const limit = parseInt(req.query.limit, 10) || 50;
 
-  // follower id, after which to give results
+  // user id, after which to give results
   const after = parseInt(req.query.after, 10);
 
   try {
